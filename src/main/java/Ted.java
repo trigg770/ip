@@ -1,9 +1,10 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
  * Entry point of the Ted chatbot.
  * Ted stores todos, deadlines and events, lists the stored tasks on request,
- * and can mark a task as done or not done, until the user enters {@code bye}.
+ * and can mark, unmark and delete them, until the user enters {@code bye}.
  */
 public class Ted {
     /** Command that ends the conversation. */
@@ -17,6 +18,9 @@ public class Ted {
 
     /** Command that reverses the done status of a task, e.g. {@code unmark 2}. */
     private static final String COMMAND_UNMARK = "unmark";
+
+    /** Command that removes a task from the list, e.g. {@code delete 3}. */
+    private static final String COMMAND_DELETE = "delete";
 
     /** Command that adds a task with no date attached, e.g. {@code todo borrow book}. */
     private static final String COMMAND_TODO = "todo";
@@ -36,19 +40,14 @@ public class Ted {
     /** Separator introducing an event's end time. */
     private static final String OPTION_TO = "/to";
 
-    /** Maximum number of tasks Ted can remember, as allowed by the requirements. */
-    private static final int MAX_TASKS = 100;
-
     /**
-     * Tasks entered by the user so far.
-     * A fixed-size array is sufficient here because the requirements cap the
-     * number of tasks at {@value #MAX_TASKS}. A growable {@code ArrayList} would
-     * be the more flexible alternative once that cap is lifted.
+     * Tasks entered by the user so far, in the order they were added.
+     * An ArrayList replaces the earlier fixed-size array now that tasks can be
+     * removed: it grows as needed, so the 100-task cap is gone, and it closes
+     * the gap left by a deletion itself instead of the surrounding code having
+     * to shift the remaining tasks down by hand.
      */
-    private static final Task[] tasks = new Task[MAX_TASKS];
-
-    /** Number of slots of {@link #tasks} that are currently filled. */
-    private static int taskCount = 0;
+    private static final ArrayList<Task> tasks = new ArrayList<>();
 
     public static void main(String[] args) {
         String name = "Ted";
@@ -126,9 +125,12 @@ public class Ted {
         case COMMAND_EVENT:
             addEvent(argument);
             break;
+        case COMMAND_DELETE:
+            deleteTask(argument);
+            break;
         default:
             throw new TedException("I don't recognise \"" + commandWord + "\". "
-                    + "I understand: todo, deadline, event, list, mark, unmark, bye.");
+                    + "I understand: todo, deadline, event, list, mark, unmark, delete, bye.");
         }
     }
 
@@ -200,17 +202,28 @@ public class Ted {
      * Stores an already-built task and confirms it to the user.
      *
      * @param task the task to remember.
-     * @throws TedException if Ted is already holding {@value #MAX_TASKS} tasks.
      */
-    private static void addTask(Task task) throws TedException {
-        if (taskCount == MAX_TASKS) {
-            throw new TedException("I can only remember " + MAX_TASKS + " tasks, so I can't add that one.");
-        }
-
-        tasks[taskCount] = task;
-        taskCount++;
+    private static void addTask(Task task) {
+        tasks.add(task);
         System.out.println("Got it. I've added this task:");
         System.out.println("  " + task);
+        printTaskCount();
+    }
+
+    /**
+     * Removes the task at the given position and shows what was removed.
+     * The task is echoed because once it is gone the user has no other way to
+     * check that the number they typed was the one they meant.
+     *
+     * @param argument task number as typed by the user, counting from 1.
+     * @throws TedException if the task number is missing, not a number, or out of range.
+     */
+    private static void deleteTask(String argument) throws TedException {
+        int index = parseTaskIndex(argument, COMMAND_DELETE);
+
+        Task removed = tasks.remove(index);
+        System.out.println("Noted. I've removed this task:");
+        System.out.println("  " + removed);
         printTaskCount();
     }
 
@@ -226,16 +239,17 @@ public class Ted {
     private static void setTaskDone(String argument, boolean isDone) throws TedException {
         int index = parseTaskIndex(argument, isDone ? COMMAND_MARK : COMMAND_UNMARK);
 
+        Task task = tasks.get(index);
         if (isDone) {
-            tasks[index].markAsDone();
+            task.markAsDone();
         } else {
-            tasks[index].markAsNotDone();
+            task.markAsNotDone();
         }
 
         System.out.println(isDone
                 ? "Nice! I've marked this task as done:"
                 : "OK, I've marked this task as not done yet:");
-        System.out.println("  " + tasks[index]);
+        System.out.println("  " + task);
     }
 
     /**
@@ -258,15 +272,15 @@ public class Ted {
             throw new TedException("\"" + argument + "\" is not a task number, " + example);
         }
 
-        if (taskCount == 0) {
+        if (tasks.isEmpty()) {
             throw new TedException("Your list is empty, so there is no task " + taskNumber + " yet.");
         }
-        if (taskNumber < 1 || taskNumber > taskCount) {
+        if (taskNumber < 1 || taskNumber > tasks.size()) {
             throw new TedException("You don't have a task numbered " + taskNumber + ". "
-                    + "Pick a number between 1 and " + taskCount + ".");
+                    + "Pick a number between 1 and " + tasks.size() + ".");
         }
 
-        // The user counts from 1, the array counts from 0.
+        // The user counts from 1, the list counts from 0.
         return taskNumber - 1;
     }
 
@@ -285,22 +299,22 @@ public class Ted {
 
     /** Prints every stored task as a numbered list, starting from 1. */
     private static void printTasks() {
-        if (taskCount == 0) {
+        if (tasks.isEmpty()) {
             System.out.println("You have no tasks yet.");
             return;
         }
 
         System.out.println("Here are the tasks in your list:");
-        for (int i = 0; i < taskCount; i++) {
-            // Displayed numbering is 1-based even though array indices are 0-based.
-            System.out.println((i + 1) + "." + tasks[i]);
+        for (int i = 0; i < tasks.size(); i++) {
+            // Displayed numbering is 1-based even though list indices are 0-based.
+            System.out.println((i + 1) + "." + tasks.get(i));
         }
     }
 
     /** Tells the user how many tasks are now stored. */
     private static void printTaskCount() {
-        String taskWord = taskCount == 1 ? "task" : "tasks";
-        System.out.println("Now you have " + taskCount + " " + taskWord + " in the list.");
+        String taskWord = tasks.size() == 1 ? "task" : "tasks";
+        System.out.println("Now you have " + tasks.size() + " " + taskWord + " in the list.");
     }
 
     private static void printLine() {
