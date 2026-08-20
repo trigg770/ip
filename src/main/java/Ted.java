@@ -3,7 +3,7 @@ import java.util.Scanner;
 /**
  * Entry point of the Ted chatbot.
  * Ted stores whatever the user types as a task, lists the stored tasks on
- * request, and can mark a task as done, until the user enters {@code bye}.
+ * request, and can mark a task as done or not done, until the user enters {@code bye}.
  */
 public class Ted {
     /** Command that ends the conversation. */
@@ -14,6 +14,9 @@ public class Ted {
 
     /** Command that marks a task as done, e.g. {@code mark 2}. */
     private static final String COMMAND_MARK = "mark";
+
+    /** Command that reverses the done status of a task, e.g. {@code unmark 2}. */
+    private static final String COMMAND_UNMARK = "unmark";
 
     /** Maximum number of tasks Ted can remember, as allowed by the requirements. */
     private static final int MAX_TASKS = 100;
@@ -83,8 +86,11 @@ public class Ted {
     private static void handleCommand(String input) {
         if (input.equals(COMMAND_LIST)) {
             printTasks();
+        } else if (input.startsWith(COMMAND_UNMARK + " ")) {
+            // Checked before "mark" so that "unmark 2" is not mistaken for a mark command.
+            setTaskDone(input.substring(COMMAND_UNMARK.length()).trim(), false);
         } else if (input.startsWith(COMMAND_MARK + " ")) {
-            markTask(input.substring(COMMAND_MARK.length()).trim());
+            setTaskDone(input.substring(COMMAND_MARK.length()).trim(), true);
         } else {
             addTask(input);
         }
@@ -110,18 +116,23 @@ public class Ted {
     }
 
     /**
-     * Marks the task at the given position as done and shows the updated task.
+     * Sets the done status of the task at the given position and shows the result.
+     * Marking and unmarking differ only in the stored flag and the wording, so
+     * they share one method rather than duplicating the lookup logic.
      *
      * @param argument task number as typed by the user, counting from 1.
+     * @param isDone   {@code true} to mark the task done, {@code false} to reverse it.
      */
-    private static void markTask(String argument) {
+    private static void setTaskDone(String argument, boolean isDone) {
         int index = parseTaskIndex(argument);
         if (index == -1) {
             return;
         }
 
-        isTaskDone[index] = true;
-        System.out.println("Nice! I've marked this task as done:");
+        isTaskDone[index] = isDone;
+        System.out.println(isDone
+                ? "Nice! I've marked this task as done:"
+                : "OK, I've marked this task as not done yet:");
         System.out.println("  " + formatTask(index));
     }
 
