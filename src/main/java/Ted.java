@@ -22,21 +22,14 @@ public class Ted {
     private static final int MAX_TASKS = 100;
 
     /**
-     * Descriptions of the tasks entered by the user so far.
+     * Tasks entered by the user so far.
      * A fixed-size array is sufficient here because the requirements cap the
      * number of tasks at {@value #MAX_TASKS}. A growable {@code ArrayList} would
      * be the more flexible alternative once that cap is lifted.
      */
-    private static final String[] taskDescriptions = new String[MAX_TASKS];
+    private static final Task[] tasks = new Task[MAX_TASKS];
 
-    /**
-     * Done status of each task, where {@code isTaskDone[i]} describes
-     * {@code taskDescriptions[i]}. Keeping the two arrays in step by hand is
-     * error-prone; a {@code Task} class will bundle them together shortly.
-     */
-    private static final boolean[] isTaskDone = new boolean[MAX_TASKS];
-
-    /** Number of slots of the task arrays that are currently filled. */
+    /** Number of slots of {@link #tasks} that are currently filled. */
     private static int taskCount = 0;
 
     public static void main(String[] args) {
@@ -109,8 +102,7 @@ public class Ted {
             return;
         }
 
-        taskDescriptions[taskCount] = description;
-        isTaskDone[taskCount] = false;
+        tasks[taskCount] = new Task(description);
         taskCount++;
         System.out.println("added: " + description);
     }
@@ -129,11 +121,16 @@ public class Ted {
             return;
         }
 
-        isTaskDone[index] = isDone;
+        if (isDone) {
+            tasks[index].markAsDone();
+        } else {
+            tasks[index].markAsNotDone();
+        }
+
         System.out.println(isDone
                 ? "Nice! I've marked this task as done:"
                 : "OK, I've marked this task as not done yet:");
-        System.out.println("  " + formatTask(index));
+        System.out.println("  " + tasks[index]);
     }
 
     /**
@@ -173,19 +170,8 @@ public class Ted {
         System.out.println("Here are the tasks in your list:");
         for (int i = 0; i < taskCount; i++) {
             // Displayed numbering is 1-based even though array indices are 0-based.
-            System.out.println((i + 1) + "." + formatTask(i));
+            System.out.println((i + 1) + "." + tasks[i]);
         }
-    }
-
-    /**
-     * Renders one task as it should appear to the user, e.g. {@code [X] read book}.
-     *
-     * @param index zero-based index of the task.
-     * @return the task's status icon followed by its description.
-     */
-    private static String formatTask(int index) {
-        String statusIcon = isTaskDone[index] ? "X" : " ";
-        return "[" + statusIcon + "] " + taskDescriptions[index];
     }
 
     private static void printLine() {
