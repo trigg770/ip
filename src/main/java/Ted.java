@@ -2,8 +2,8 @@ import java.util.Scanner;
 
 /**
  * Entry point of the Ted chatbot.
- * Ted stores whatever the user types as a task, lists the stored tasks on
- * request, and can mark a task as done or not done, until the user enters {@code bye}.
+ * Ted stores todos, deadlines and events, lists the stored tasks on request,
+ * and can mark a task as done or not done, until the user enters {@code bye}.
  */
 public class Ted {
     /** Command that ends the conversation. */
@@ -17,6 +17,24 @@ public class Ted {
 
     /** Command that reverses the done status of a task, e.g. {@code unmark 2}. */
     private static final String COMMAND_UNMARK = "unmark";
+
+    /** Command that adds a task with no date attached, e.g. {@code todo borrow book}. */
+    private static final String COMMAND_TODO = "todo";
+
+    /** Command that adds a task due by a given time, e.g. {@code deadline report /by Sunday}. */
+    private static final String COMMAND_DEADLINE = "deadline";
+
+    /** Command that adds a task spanning two times, e.g. {@code event meeting /from Mon 2pm /to 4pm}. */
+    private static final String COMMAND_EVENT = "event";
+
+    /** Separator introducing a deadline's due time. */
+    private static final String OPTION_BY = " /by ";
+
+    /** Separator introducing an event's start time. */
+    private static final String OPTION_FROM = " /from ";
+
+    /** Separator introducing an event's end time. */
+    private static final String OPTION_TO = " /to ";
 
     /** Maximum number of tasks Ted can remember, as allowed by the requirements. */
     private static final int MAX_TASKS = 100;
@@ -84,27 +102,89 @@ public class Ted {
             setTaskDone(input.substring(COMMAND_UNMARK.length()).trim(), false);
         } else if (input.startsWith(COMMAND_MARK + " ")) {
             setTaskDone(input.substring(COMMAND_MARK.length()).trim(), true);
+        } else if (input.startsWith(COMMAND_TODO)) {
+            addTodo(input.substring(COMMAND_TODO.length()).trim());
+        } else if (input.startsWith(COMMAND_DEADLINE)) {
+            addDeadline(input.substring(COMMAND_DEADLINE.length()).trim());
+        } else if (input.startsWith(COMMAND_EVENT)) {
+            addEvent(input.substring(COMMAND_EVENT.length()).trim());
         } else {
-            addTask(input);
+            System.out.println("I don't know that command. Try: todo, deadline, event, list, mark, unmark or bye.");
         }
     }
 
     /**
-     * Stores the given task and confirms it to the user.
+     * Adds a task with no date attached.
+     *
+     * @param description what the user wants to get done.
+     */
+    private static void addTodo(String description) {
+        addTask(new Todo(description));
+    }
+
+    /**
+     * Adds a task due by a given time, from an argument of the form
+     * {@code <description> /by <time>}.
+     *
+     * @param argument everything the user typed after the command word.
+     */
+    private static void addDeadline(String argument) {
+        int separator = argument.indexOf(OPTION_BY);
+        if (separator == -1) {
+            System.out.println("A deadline needs a due time, for example: deadline return book /by Sunday");
+            return;
+        }
+
+        String description = argument.substring(0, separator).trim();
+        String by = argument.substring(separator + OPTION_BY.length()).trim();
+        addTask(new Deadline(description, by));
+    }
+
+    /**
+     * Adds a task spanning two times, from an argument of the form
+     * {@code <description> /from <start> /to <end>}.
+     *
+     * @param argument everything the user typed after the command word.
+     */
+    private static void addEvent(String argument) {
+        int fromSeparator = argument.indexOf(OPTION_FROM);
+        int toSeparator = argument.indexOf(OPTION_TO);
+        if (fromSeparator == -1 || toSeparator == -1 || toSeparator < fromSeparator) {
+            System.out.println("An event needs a start and an end, for example: "
+                    + "event project meeting /from Mon 2pm /to 4pm");
+            return;
+        }
+
+        String description = argument.substring(0, fromSeparator).trim();
+        String from = argument.substring(fromSeparator + OPTION_FROM.length(), toSeparator).trim();
+        String to = argument.substring(toSeparator + OPTION_TO.length()).trim();
+        addTask(new Event(description, from, to));
+    }
+
+    /**
+     * Stores an already-built task and confirms it to the user.
      * Anything beyond {@link #MAX_TASKS} tasks is rejected rather than silently
      * dropped, so the user always knows whether Ted remembered the task.
      *
-     * @param description text entered by the user.
+     * @param task the task to remember.
      */
-    private static void addTask(String description) {
+    private static void addTask(Task task) {
         if (taskCount == MAX_TASKS) {
             System.out.println("I can only remember " + MAX_TASKS + " tasks, so I can't add that one.");
             return;
         }
 
-        tasks[taskCount] = new Task(description);
+        tasks[taskCount] = task;
         taskCount++;
-        System.out.println("added: " + description);
+        System.out.println("Got it. I've added this task:");
+        System.out.println("  " + task);
+        printTaskCount();
+    }
+
+    /** Tells the user how many tasks are now stored. */
+    private static void printTaskCount() {
+        String taskWord = taskCount == 1 ? "task" : "tasks";
+        System.out.println("Now you have " + taskCount + " " + taskWord + " in the list.");
     }
 
     /**
