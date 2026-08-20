@@ -28,13 +28,13 @@ public class Ted {
     private static final String COMMAND_EVENT = "event";
 
     /** Separator introducing a deadline's due time. */
-    private static final String OPTION_BY = " /by ";
+    private static final String OPTION_BY = "/by";
 
     /** Separator introducing an event's start time. */
-    private static final String OPTION_FROM = " /from ";
+    private static final String OPTION_FROM = "/from";
 
     /** Separator introducing an event's end time. */
-    private static final String OPTION_TO = " /to ";
+    private static final String OPTION_TO = "/to";
 
     /** Maximum number of tasks Ted can remember, as allowed by the requirements. */
     private static final int MAX_TASKS = 100;
@@ -79,7 +79,13 @@ public class Ted {
             }
 
             printLine();
-            handleCommand(input);
+            try {
+                handleCommand(input);
+            } catch (TedException e) {
+                // Every problem Ted can recognise is recoverable, so the message is
+                // shown and the conversation continues with the next command.
+                System.out.println(e.getMessage());
+            }
             printLine();
         }
 
@@ -90,26 +96,39 @@ public class Ted {
 
     /**
      * Carries out the command entered by the user.
-     * Anything that is not a recognised command is stored as a new task.
      *
      * @param input full line of text entered by the user, already trimmed.
+     * @throws TedException if the command is unknown or its details are unusable.
      */
-    private static void handleCommand(String input) {
-        if (input.equals(COMMAND_LIST)) {
+    private static void handleCommand(String input) throws TedException {
+        // Splitting into at most two parts keeps the command word exact, so that
+        // "todos" is not mistaken for "todo", while leaving the rest untouched.
+        String[] parts = input.split(" ", 2);
+        String commandWord = parts[0];
+        String argument = parts.length > 1 ? parts[1].trim() : "";
+
+        switch (commandWord) {
+        case COMMAND_LIST:
             printTasks();
-        } else if (input.startsWith(COMMAND_UNMARK + " ")) {
-            // Checked before "mark" so that "unmark 2" is not mistaken for a mark command.
-            setTaskDone(input.substring(COMMAND_UNMARK.length()).trim(), false);
-        } else if (input.startsWith(COMMAND_MARK + " ")) {
-            setTaskDone(input.substring(COMMAND_MARK.length()).trim(), true);
-        } else if (input.startsWith(COMMAND_TODO)) {
-            addTodo(input.substring(COMMAND_TODO.length()).trim());
-        } else if (input.startsWith(COMMAND_DEADLINE)) {
-            addDeadline(input.substring(COMMAND_DEADLINE.length()).trim());
-        } else if (input.startsWith(COMMAND_EVENT)) {
-            addEvent(input.substring(COMMAND_EVENT.length()).trim());
-        } else {
-            System.out.println("I don't know that command. Try: todo, deadline, event, list, mark, unmark or bye.");
+            break;
+        case COMMAND_MARK:
+            setTaskDone(argument, true);
+            break;
+        case COMMAND_UNMARK:
+            setTaskDone(argument, false);
+            break;
+        case COMMAND_TODO:
+            addTodo(argument);
+            break;
+        case COMMAND_DEADLINE:
+            addDeadline(argument);
+            break;
+        case COMMAND_EVENT:
+            addEvent(argument);
+            break;
+        default:
+            throw new TedException("I don't recognise \"" + commandWord + "\". "
+                    + "I understand: todo, deadline, event, list, mark, unmark, bye.");
         }
     }
 
@@ -117,8 +136,10 @@ public class Ted {
      * Adds a task with no date attached.
      *
      * @param description what the user wants to get done.
+     * @throws TedException if the description is missing.
      */
-    private static void addTodo(String description) {
+    private static void addTodo(String description) throws TedException {
+        requireNotBlank(description, "A todo needs a description, for example: todo borrow book");
         addTask(new Todo(description));
     }
 
@@ -127,16 +148,21 @@ public class Ted {
      * {@code <description> /by <time>}.
      *
      * @param argument everything the user typed after the command word.
+     * @throws TedException if the description or the due time is missing.
      */
-    private static void addDeadline(String argument) {
+    private static void addDeadline(String argument) throws TedException {
+        String example = "for example: deadline return book /by Sunday";
+        requireNotBlank(argument, "A deadline needs a description and a due time, " + example);
+
         int separator = argument.indexOf(OPTION_BY);
         if (separator == -1) {
-            System.out.println("A deadline needs a due time, for example: deadline return book /by Sunday");
-            return;
+            throw new TedException("I need to know when this is due. Use /by, " + example);
         }
 
         String description = argument.substring(0, separator).trim();
         String by = argument.substring(separator + OPTION_BY.length()).trim();
+        requireNotBlank(description, "A deadline needs a description before /by, " + example);
+        requireNotBlank(by, "A deadline needs a due time after /by, " + example);
         addTask(new Deadline(description, by));
     }
 
@@ -145,33 +171,40 @@ public class Ted {
      * {@code <description> /from <start> /to <end>}.
      *
      * @param argument everything the user typed after the command word.
+     * @throws TedException if the description, the start or the end is missing,
+     *                      or the two times are given in the wrong order.
      */
-    private static void addEvent(String argument) {
+    private static void addEvent(String argument) throws TedException {
+        String example = "for example: event project meeting /from Mon 2pm /to 4pm";
+        requireNotBlank(argument, "An event needs a description, a start and an end, " + example);
+
         int fromSeparator = argument.indexOf(OPTION_FROM);
         int toSeparator = argument.indexOf(OPTION_TO);
-        if (fromSeparator == -1 || toSeparator == -1 || toSeparator < fromSeparator) {
-            System.out.println("An event needs a start and an end, for example: "
-                    + "event project meeting /from Mon 2pm /to 4pm");
-            return;
+        if (fromSeparator == -1 || toSeparator == -1) {
+            throw new TedException("An event needs both /from and /to, " + example);
+        }
+        if (toSeparator < fromSeparator) {
+            throw new TedException("Please put /from before /to, " + example);
         }
 
         String description = argument.substring(0, fromSeparator).trim();
         String from = argument.substring(fromSeparator + OPTION_FROM.length(), toSeparator).trim();
         String to = argument.substring(toSeparator + OPTION_TO.length()).trim();
+        requireNotBlank(description, "An event needs a description before /from, " + example);
+        requireNotBlank(from, "An event needs a start time after /from, " + example);
+        requireNotBlank(to, "An event needs an end time after /to, " + example);
         addTask(new Event(description, from, to));
     }
 
     /**
      * Stores an already-built task and confirms it to the user.
-     * Anything beyond {@link #MAX_TASKS} tasks is rejected rather than silently
-     * dropped, so the user always knows whether Ted remembered the task.
      *
      * @param task the task to remember.
+     * @throws TedException if Ted is already holding {@value #MAX_TASKS} tasks.
      */
-    private static void addTask(Task task) {
+    private static void addTask(Task task) throws TedException {
         if (taskCount == MAX_TASKS) {
-            System.out.println("I can only remember " + MAX_TASKS + " tasks, so I can't add that one.");
-            return;
+            throw new TedException("I can only remember " + MAX_TASKS + " tasks, so I can't add that one.");
         }
 
         tasks[taskCount] = task;
@@ -181,12 +214,6 @@ public class Ted {
         printTaskCount();
     }
 
-    /** Tells the user how many tasks are now stored. */
-    private static void printTaskCount() {
-        String taskWord = taskCount == 1 ? "task" : "tasks";
-        System.out.println("Now you have " + taskCount + " " + taskWord + " in the list.");
-    }
-
     /**
      * Sets the done status of the task at the given position and shows the result.
      * Marking and unmarking differ only in the stored flag and the wording, so
@@ -194,12 +221,10 @@ public class Ted {
      *
      * @param argument task number as typed by the user, counting from 1.
      * @param isDone   {@code true} to mark the task done, {@code false} to reverse it.
+     * @throws TedException if the task number is missing, not a number, or out of range.
      */
-    private static void setTaskDone(String argument, boolean isDone) {
-        int index = parseTaskIndex(argument);
-        if (index == -1) {
-            return;
-        }
+    private static void setTaskDone(String argument, boolean isDone) throws TedException {
+        int index = parseTaskIndex(argument, isDone ? COMMAND_MARK : COMMAND_UNMARK);
 
         if (isDone) {
             tasks[index].markAsDone();
@@ -214,30 +239,48 @@ public class Ted {
     }
 
     /**
-     * Converts a task number typed by the user into an index into the task arrays.
-     * Reports the problem to the user and returns {@code -1} when the number is
-     * missing, not a number, or outside the range of stored tasks, so that a
-     * mistyped command never crashes the conversation.
+     * Converts a task number typed by the user into an index into {@link #tasks}.
      *
-     * @param argument task number as typed by the user, counting from 1.
-     * @return zero-based index of the task, or {@code -1} if the number is unusable.
+     * @param argument    task number as typed by the user, counting from 1.
+     * @param commandWord command the number was given to, used in the error message.
+     * @return zero-based index of the task.
+     * @throws TedException if the number is missing, not a number, or out of range.
      */
-    private static int parseTaskIndex(String argument) {
+    private static int parseTaskIndex(String argument, String commandWord) throws TedException {
+        String example = "for example: " + commandWord + " 2";
+        requireNotBlank(argument, "Which task? Give me its number, " + example);
+
         int taskNumber;
         try {
             taskNumber = Integer.parseInt(argument);
         } catch (NumberFormatException e) {
-            System.out.println("I need a task number, for example: mark 2");
-            return -1;
+            // Rethrown as a TedException so the main loop handles every failure the same way.
+            throw new TedException("\"" + argument + "\" is not a task number, " + example);
         }
 
+        if (taskCount == 0) {
+            throw new TedException("Your list is empty, so there is no task " + taskNumber + " yet.");
+        }
         if (taskNumber < 1 || taskNumber > taskCount) {
-            System.out.println("You don't have a task numbered " + taskNumber + ".");
-            return -1;
+            throw new TedException("You don't have a task numbered " + taskNumber + ". "
+                    + "Pick a number between 1 and " + taskCount + ".");
         }
 
-        // The user counts from 1, the arrays count from 0.
+        // The user counts from 1, the array counts from 0.
         return taskNumber - 1;
+    }
+
+    /**
+     * Rejects input the user left out.
+     *
+     * @param value   text entered by the user.
+     * @param message explanation to show if the text is missing.
+     * @throws TedException if {@code value} is empty or only whitespace.
+     */
+    private static void requireNotBlank(String value, String message) throws TedException {
+        if (value.isBlank()) {
+            throw new TedException(message);
+        }
     }
 
     /** Prints every stored task as a numbered list, starting from 1. */
@@ -252,6 +295,12 @@ public class Ted {
             // Displayed numbering is 1-based even though array indices are 0-based.
             System.out.println((i + 1) + "." + tasks[i]);
         }
+    }
+
+    /** Tells the user how many tasks are now stored. */
+    private static void printTaskCount() {
+        String taskWord = taskCount == 1 ? "task" : "tasks";
+        System.out.println("Now you have " + taskCount + " " + taskWord + " in the list.");
     }
 
     private static void printLine() {
