@@ -7,30 +7,6 @@ import java.util.Scanner;
  * and can mark, unmark and delete them, until the user enters {@code bye}.
  */
 public class Ted {
-    /** Command that ends the conversation. */
-    private static final String COMMAND_EXIT = "bye";
-
-    /** Command that displays every stored task. */
-    private static final String COMMAND_LIST = "list";
-
-    /** Command that marks a task as done, e.g. {@code mark 2}. */
-    private static final String COMMAND_MARK = "mark";
-
-    /** Command that reverses the done status of a task, e.g. {@code unmark 2}. */
-    private static final String COMMAND_UNMARK = "unmark";
-
-    /** Command that removes a task from the list, e.g. {@code delete 3}. */
-    private static final String COMMAND_DELETE = "delete";
-
-    /** Command that adds a task with no date attached, e.g. {@code todo borrow book}. */
-    private static final String COMMAND_TODO = "todo";
-
-    /** Command that adds a task due by a given time, e.g. {@code deadline report /by Sunday}. */
-    private static final String COMMAND_DEADLINE = "deadline";
-
-    /** Command that adds a task spanning two times, e.g. {@code event meeting /from Mon 2pm /to 4pm}. */
-    private static final String COMMAND_EVENT = "event";
-
     /** Separator introducing a deadline's due time. */
     private static final String OPTION_BY = "/by";
 
@@ -73,7 +49,11 @@ public class Ted {
             }
 
             String input = scanner.nextLine().trim();
-            if (input.equals(COMMAND_EXIT)) {
+            if (input.isBlank()) {
+                // A stray blank line is not worth a reply.
+                continue;
+            }
+            if (Command.isExit(input)) {
                 break;
             }
 
@@ -103,34 +83,34 @@ public class Ted {
         // Splitting into at most two parts keeps the command word exact, so that
         // "todos" is not mistaken for "todo", while leaving the rest untouched.
         String[] parts = input.split(" ", 2);
-        String commandWord = parts[0];
         String argument = parts.length > 1 ? parts[1].trim() : "";
+        Command command = Command.fromKeyword(parts[0]);
 
-        switch (commandWord) {
-        case COMMAND_LIST:
+        switch (command) {
+        case LIST:
             printTasks();
             break;
-        case COMMAND_MARK:
+        case MARK:
             setTaskDone(argument, true);
             break;
-        case COMMAND_UNMARK:
+        case UNMARK:
             setTaskDone(argument, false);
             break;
-        case COMMAND_TODO:
+        case TODO:
             addTodo(argument);
             break;
-        case COMMAND_DEADLINE:
+        case DEADLINE:
             addDeadline(argument);
             break;
-        case COMMAND_EVENT:
+        case EVENT:
             addEvent(argument);
             break;
-        case COMMAND_DELETE:
+        case DELETE:
             deleteTask(argument);
             break;
         default:
-            throw new TedException("I don't recognise \"" + commandWord + "\". "
-                    + "I understand: todo, deadline, event, list, mark, unmark, delete, bye.");
+            // BYE is handled before parsing, so no other command can reach here.
+            throw new TedException("I know \"" + command.getKeyword() + "\", but I can't do it here.");
         }
     }
 
@@ -219,7 +199,7 @@ public class Ted {
      * @throws TedException if the task number is missing, not a number, or out of range.
      */
     private static void deleteTask(String argument) throws TedException {
-        int index = parseTaskIndex(argument, COMMAND_DELETE);
+        int index = parseTaskIndex(argument, Command.DELETE);
 
         Task removed = tasks.remove(index);
         System.out.println("Noted. I've removed this task:");
@@ -237,7 +217,7 @@ public class Ted {
      * @throws TedException if the task number is missing, not a number, or out of range.
      */
     private static void setTaskDone(String argument, boolean isDone) throws TedException {
-        int index = parseTaskIndex(argument, isDone ? COMMAND_MARK : COMMAND_UNMARK);
+        int index = parseTaskIndex(argument, isDone ? Command.MARK : Command.UNMARK);
 
         Task task = tasks.get(index);
         if (isDone) {
@@ -255,13 +235,13 @@ public class Ted {
     /**
      * Converts a task number typed by the user into an index into {@link #tasks}.
      *
-     * @param argument    task number as typed by the user, counting from 1.
-     * @param commandWord command the number was given to, used in the error message.
+     * @param argument task number as typed by the user, counting from 1.
+     * @param command  command the number was given to, used in the error message.
      * @return zero-based index of the task.
      * @throws TedException if the number is missing, not a number, or out of range.
      */
-    private static int parseTaskIndex(String argument, String commandWord) throws TedException {
-        String example = "for example: " + commandWord + " 2";
+    private static int parseTaskIndex(String argument, Command command) throws TedException {
+        String example = "for example: " + command.getKeyword() + " 2";
         requireNotBlank(argument, "Which task? Give me its number, " + example);
 
         int taskNumber;
