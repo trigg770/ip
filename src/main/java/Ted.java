@@ -2,8 +2,8 @@ import java.util.Scanner;
 
 /**
  * Entry point of the Ted chatbot.
- * At this stage Ted stores whatever the user types as a task and can list
- * the stored tasks back on request, until the user enters the {@code bye} command.
+ * Ted stores whatever the user types as a task, lists the stored tasks on
+ * request, and can mark a task as done, until the user enters {@code bye}.
  */
 public class Ted {
     /** Command that ends the conversation. */
@@ -12,18 +12,28 @@ public class Ted {
     /** Command that displays every stored task. */
     private static final String COMMAND_LIST = "list";
 
+    /** Command that marks a task as done, e.g. {@code mark 2}. */
+    private static final String COMMAND_MARK = "mark";
+
     /** Maximum number of tasks Ted can remember, as allowed by the requirements. */
     private static final int MAX_TASKS = 100;
 
     /**
-     * Tasks entered by the user so far.
+     * Descriptions of the tasks entered by the user so far.
      * A fixed-size array is sufficient here because the requirements cap the
      * number of tasks at {@value #MAX_TASKS}. A growable {@code ArrayList} would
      * be the more flexible alternative once that cap is lifted.
      */
-    private static final String[] tasks = new String[MAX_TASKS];
+    private static final String[] taskDescriptions = new String[MAX_TASKS];
 
-    /** Number of slots of {@link #tasks} that are currently filled. */
+    /**
+     * Done status of each task, where {@code isTaskDone[i]} describes
+     * {@code taskDescriptions[i]}. Keeping the two arrays in step by hand is
+     * error-prone; a {@code Task} class will bundle them together shortly.
+     */
+    private static final boolean[] isTaskDone = new boolean[MAX_TASKS];
+
+    /** Number of slots of the task arrays that are currently filled. */
     private static int taskCount = 0;
 
     public static void main(String[] args) {
@@ -55,11 +65,7 @@ public class Ted {
             }
 
             printLine();
-            if (input.equals(COMMAND_LIST)) {
-                printTasks();
-            } else {
-                addTask(input);
-            }
+            handleCommand(input);
             printLine();
         }
 
@@ -69,21 +75,81 @@ public class Ted {
     }
 
     /**
+     * Carries out the command entered by the user.
+     * Anything that is not a recognised command is stored as a new task.
+     *
+     * @param input full line of text entered by the user, already trimmed.
+     */
+    private static void handleCommand(String input) {
+        if (input.equals(COMMAND_LIST)) {
+            printTasks();
+        } else if (input.startsWith(COMMAND_MARK + " ")) {
+            markTask(input.substring(COMMAND_MARK.length()).trim());
+        } else {
+            addTask(input);
+        }
+    }
+
+    /**
      * Stores the given task and confirms it to the user.
      * Anything beyond {@link #MAX_TASKS} tasks is rejected rather than silently
      * dropped, so the user always knows whether Ted remembered the task.
      *
-     * @param task text entered by the user.
+     * @param description text entered by the user.
      */
-    private static void addTask(String task) {
+    private static void addTask(String description) {
         if (taskCount == MAX_TASKS) {
             System.out.println("I can only remember " + MAX_TASKS + " tasks, so I can't add that one.");
             return;
         }
 
-        tasks[taskCount] = task;
+        taskDescriptions[taskCount] = description;
+        isTaskDone[taskCount] = false;
         taskCount++;
-        System.out.println("added: " + task);
+        System.out.println("added: " + description);
+    }
+
+    /**
+     * Marks the task at the given position as done and shows the updated task.
+     *
+     * @param argument task number as typed by the user, counting from 1.
+     */
+    private static void markTask(String argument) {
+        int index = parseTaskIndex(argument);
+        if (index == -1) {
+            return;
+        }
+
+        isTaskDone[index] = true;
+        System.out.println("Nice! I've marked this task as done:");
+        System.out.println("  " + formatTask(index));
+    }
+
+    /**
+     * Converts a task number typed by the user into an index into the task arrays.
+     * Reports the problem to the user and returns {@code -1} when the number is
+     * missing, not a number, or outside the range of stored tasks, so that a
+     * mistyped command never crashes the conversation.
+     *
+     * @param argument task number as typed by the user, counting from 1.
+     * @return zero-based index of the task, or {@code -1} if the number is unusable.
+     */
+    private static int parseTaskIndex(String argument) {
+        int taskNumber;
+        try {
+            taskNumber = Integer.parseInt(argument);
+        } catch (NumberFormatException e) {
+            System.out.println("I need a task number, for example: mark 2");
+            return -1;
+        }
+
+        if (taskNumber < 1 || taskNumber > taskCount) {
+            System.out.println("You don't have a task numbered " + taskNumber + ".");
+            return -1;
+        }
+
+        // The user counts from 1, the arrays count from 0.
+        return taskNumber - 1;
     }
 
     /** Prints every stored task as a numbered list, starting from 1. */
@@ -93,10 +159,22 @@ public class Ted {
             return;
         }
 
+        System.out.println("Here are the tasks in your list:");
         for (int i = 0; i < taskCount; i++) {
             // Displayed numbering is 1-based even though array indices are 0-based.
-            System.out.println((i + 1) + ". " + tasks[i]);
+            System.out.println((i + 1) + "." + formatTask(i));
         }
+    }
+
+    /**
+     * Renders one task as it should appear to the user, e.g. {@code [X] read book}.
+     *
+     * @param index zero-based index of the task.
+     * @return the task's status icon followed by its description.
+     */
+    private static String formatTask(int index) {
+        String statusIcon = isTaskDone[index] ? "X" : " ";
+        return "[" + statusIcon + "] " + taskDescriptions[index];
     }
 
     private static void printLine() {
