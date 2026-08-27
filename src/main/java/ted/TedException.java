@@ -1,3 +1,5 @@
+package ted;
+
 /**
  * Signals that Ted cannot carry out what the user asked for.
  * <p>

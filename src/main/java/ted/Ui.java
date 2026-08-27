@@ -1,5 +1,10 @@
+package ted;
+
 import java.util.List;
 import java.util.Scanner;
+
+import ted.task.Task;
+import ted.task.TaskList;
 
 /**
  * Handles everything Ted says to the user and everything the user types back.

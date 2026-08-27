@@ -1,3 +1,9 @@
+package ted.command;
+
+import ted.Storage;
+import ted.Ui;
+import ted.task.TaskList;
+
 /** Ends the conversation. */
 public class ExitCommand extends Command {
     @Override

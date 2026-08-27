@@ -1,5 +1,9 @@
+package ted.task;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import ted.TedException;
 
 /**
  * The tasks Ted is keeping track of, in the order they were added.

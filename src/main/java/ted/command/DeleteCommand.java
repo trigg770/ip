@@ -1,3 +1,11 @@
+package ted.command;
+
+import ted.Storage;
+import ted.TedException;
+import ted.Ui;
+import ted.task.Task;
+import ted.task.TaskList;
+
 /**
  * Removes a task from the list.
  * The removed task is echoed back because once it is gone the user has no

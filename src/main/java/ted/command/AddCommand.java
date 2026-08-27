@@ -1,8 +1,16 @@
+package ted.command;
+
+import ted.Storage;
+import ted.TedException;
+import ted.Ui;
+import ted.task.Task;
+import ted.task.TaskList;
+
 /**
  * Adds a task to the list.
  * <p>
  * One class covers todos, deadlines and events: by the time the command is
- * built, {@link Parser} has already turned the user's words into the right
+ * built, {@link ted.Parser} has already turned the user's words into the right
  * kind of {@link Task}, and adding it is the same work in every case.
  */
 public class AddCommand extends Command {
