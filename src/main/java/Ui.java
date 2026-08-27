@@ -1,0 +1,158 @@
+import java.util.List;
+import java.util.Scanner;
+
+/**
+ * Handles everything Ted says to the user and everything the user types back.
+ * <p>
+ * Keeping all of the console work in one class means the rest of Ted never
+ * calls {@code System.out} directly: the wording of a message can change, or
+ * the whole conversation can be moved to a window instead of a terminal, by
+ * editing this class alone.
+ */
+public class Ui {
+    /** Horizontal rule framing each of Ted's replies. */
+    private static final String DIVIDER = "____________________________________________________________";
+
+    /** Ted's name in ASCII art, shown once at startup. */
+    private static final String BANNER = " _____ _____ ____  \n"
+            + "|_   _| ____|  _ \\ \n"
+            + "  | | |  _| | | | |\n"
+            + "  | | | |___| |_| |\n"
+            + "  |_| |_____|____/ \n";
+
+    /** Reads the user's commands from standard input, one line at a time. */
+    private final Scanner scanner = new Scanner(System.in);
+
+    /**
+     * Returns whether the user has typed another line.
+     * Guards against the input stream ending (e.g. Ctrl-D or a piped file),
+     * which would otherwise make {@link #readCommand()} throw.
+     *
+     * @return {@code true} if another command can be read.
+     */
+    public boolean hasNextCommand() {
+        return scanner.hasNextLine();
+    }
+
+    /**
+     * Reads the next command typed by the user.
+     *
+     * @return the line the user typed, with surrounding spaces removed.
+     */
+    public String readCommand() {
+        return scanner.nextLine().trim();
+    }
+
+    /** Prints the horizontal rule that frames each reply. */
+    public void showLine() {
+        System.out.println(DIVIDER);
+    }
+
+    /** Greets the user at startup. */
+    public void showWelcome() {
+        showLine();
+        System.out.println(BANNER + "Hello! I'm Ted.\nWhat can I do for you?");
+        showLine();
+    }
+
+    /** Says goodbye just before Ted stops. */
+    public void showGoodbye() {
+        showLine();
+        System.out.println("Bye. Hope to see you again soon!");
+        showLine();
+    }
+
+    /**
+     * Reports a problem Ted can recover from.
+     *
+     * @param message explanation of what went wrong, phrased as Ted would say it.
+     */
+    public void showError(String message) {
+        System.out.println(message);
+    }
+
+    /**
+     * Warns that the saved tasks could not be read, so Ted starts empty.
+     *
+     * @param message explanation of what went wrong.
+     */
+    public void showLoadingError(String message) {
+        System.out.println("I couldn't read your saved tasks (" + message + ").");
+        System.out.println("Starting with an empty list.");
+    }
+
+    /**
+     * Warns that some lines of the save file were not in the expected format.
+     *
+     * @param skippedLineCount how many lines were skipped.
+     */
+    public void showSkippedLines(int skippedLineCount) {
+        String lineWord = skippedLineCount == 1 ? "line" : "lines";
+        System.out.println("Skipped " + skippedLineCount + " unreadable " + lineWord
+                + " in your save file.");
+    }
+
+    /**
+     * Confirms a newly added task.
+     *
+     * @param task      the task that was added.
+     * @param taskCount how many tasks are now stored.
+     */
+    public void showAdded(Task task, int taskCount) {
+        System.out.println("Got it. I've added this task:");
+        System.out.println("  " + task);
+        showTaskCount(taskCount);
+    }
+
+    /**
+     * Confirms a deleted task. The task is echoed because once it is gone the
+     * user has no other way to check that the number they typed was the one
+     * they meant.
+     *
+     * @param task      the task that was removed.
+     * @param taskCount how many tasks are left.
+     */
+    public void showRemoved(Task task, int taskCount) {
+        System.out.println("Noted. I've removed this task:");
+        System.out.println("  " + task);
+        showTaskCount(taskCount);
+    }
+
+    /**
+     * Confirms a change to a task's done status.
+     *
+     * @param task   the task whose status changed.
+     * @param isDone {@code true} if the task was marked done, {@code false} if reversed.
+     */
+    public void showMarked(Task task, boolean isDone) {
+        System.out.println(isDone
+                ? "Nice! I've marked this task as done:"
+                : "OK, I've marked this task as not done yet:");
+        System.out.println("  " + task);
+    }
+
+    /**
+     * Prints every stored task as a numbered list, starting from 1.
+     *
+     * @param tasks the tasks to show.
+     */
+    public void showTasks(TaskList tasks) {
+        if (tasks.isEmpty()) {
+            System.out.println("You have no tasks yet.");
+            return;
+        }
+
+        System.out.println("Here are the tasks in your list:");
+        List<Task> taskList = tasks.asList();
+        for (int i = 0; i < taskList.size(); i++) {
+            // Displayed numbering is 1-based even though list indices are 0-based.
+            System.out.println((i + 1) + "." + taskList.get(i));
+        }
+    }
+
+    /** Tells the user how many tasks are now stored. */
+    private void showTaskCount(int taskCount) {
+        String taskWord = taskCount == 1 ? "task" : "tasks";
+        System.out.println("Now you have " + taskCount + " " + taskWord + " in the list.");
+    }
+}
