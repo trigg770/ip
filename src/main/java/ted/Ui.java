@@ -142,12 +142,36 @@ public class Ui {
      * @param tasks the tasks to show.
      */
     public void showTasks(TaskList tasks) {
+        showNumbered(tasks, "Here are the tasks in your list:", "You have no tasks yet.");
+    }
+
+    /**
+     * Prints the tasks that matched a search, as a numbered list.
+     * The numbers count the matches, not the positions in the full list, so
+     * they are not the numbers to pass to mark or delete.
+     *
+     * @param matches the tasks that matched.
+     * @param keyword what the user searched for, repeated back when nothing matched.
+     */
+    public void showMatchingTasks(TaskList matches, String keyword) {
+        showNumbered(matches, "Here are the matching tasks in your list:",
+                "No task matches \"" + keyword + "\".");
+    }
+
+    /**
+     * Prints tasks as a numbered list, starting from 1.
+     *
+     * @param tasks        the tasks to show.
+     * @param header       line introducing the list.
+     * @param emptyMessage line to show instead when there are no tasks.
+     */
+    private void showNumbered(TaskList tasks, String header, String emptyMessage) {
         if (tasks.isEmpty()) {
-            System.out.println("You have no tasks yet.");
+            System.out.println(emptyMessage);
             return;
         }
 
-        System.out.println("Here are the tasks in your list:");
+        System.out.println(header);
         List<Task> taskList = tasks.asList();
         for (int i = 0; i < taskList.size(); i++) {
             // Displayed numbering is 1-based even though list indices are 0-based.

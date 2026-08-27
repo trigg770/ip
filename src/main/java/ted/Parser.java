@@ -10,6 +10,7 @@ import ted.command.Command;
 import ted.command.CommandType;
 import ted.command.DeleteCommand;
 import ted.command.ExitCommand;
+import ted.command.FindCommand;
 import ted.command.ListCommand;
 import ted.command.MarkCommand;
 import ted.task.Deadline;
@@ -63,11 +64,24 @@ public class Parser {
             case MARK -> new MarkCommand(parseTaskIndex(argument, CommandType.MARK), true);
             case UNMARK -> new MarkCommand(parseTaskIndex(argument, CommandType.UNMARK), false);
             case DELETE -> new DeleteCommand(parseTaskIndex(argument, CommandType.DELETE));
+            case FIND -> new FindCommand(parseKeyword(argument));
             case TODO -> new AddCommand(parseTodo(argument));
             case DEADLINE -> new AddCommand(parseDeadline(argument));
             case EVENT -> new AddCommand(parseEvent(argument));
             case BYE -> new ExitCommand();
         };
+    }
+
+    /**
+     * Reads the keyword to search for.
+     *
+     * @param argument everything the user typed after the command word.
+     * @return the keyword, with surrounding spaces removed.
+     * @throws TedException if no keyword was given.
+     */
+    private static String parseKeyword(String argument) throws TedException {
+        requireNotBlank(argument, "What should I look for? for example: find book");
+        return argument;
     }
 
     /**
