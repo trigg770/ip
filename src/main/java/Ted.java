@@ -25,7 +25,17 @@ public class Ted {
      */
     private static final ArrayList<Task> tasks = new ArrayList<>();
 
+    /**
+     * Starts Ted, restores saved tasks, and handles commands until the user exits.
+     *
+     * @param args command-line arguments, which Ted does not use.
+     */
     public static void main(String[] args) {
+        // Restore the tasks saved from the previous run, if any, so that the
+        // list is complete before the user is greeted and can be relied on by
+        // every command that follows.
+        tasks.addAll(Storage.load());
+
         String name = "Ted";
         String banner = " _____ _____ ____  \n"
                 + "|_   _| ____|  _ \\ \n"
@@ -87,30 +97,31 @@ public class Ted {
         Command command = Command.fromKeyword(parts[0]);
 
         switch (command) {
-        case LIST:
-            printTasks();
-            break;
-        case MARK:
-            setTaskDone(argument, true);
-            break;
-        case UNMARK:
-            setTaskDone(argument, false);
-            break;
-        case TODO:
-            addTodo(argument);
-            break;
-        case DEADLINE:
-            addDeadline(argument);
-            break;
-        case EVENT:
-            addEvent(argument);
-            break;
-        case DELETE:
-            deleteTask(argument);
-            break;
-        default:
-            // BYE is handled before parsing, so no other command can reach here.
-            throw new TedException("I know \"" + command.getKeyword() + "\", but I can't do it here.");
+            case LIST:
+                printTasks();
+                break;
+            case MARK:
+                setTaskDone(argument, true);
+                break;
+            case UNMARK:
+                setTaskDone(argument, false);
+                break;
+            case TODO:
+                addTodo(argument);
+                break;
+            case DEADLINE:
+                addDeadline(argument);
+                break;
+            case EVENT:
+                addEvent(argument);
+                break;
+            case DELETE:
+                deleteTask(argument);
+                break;
+            default:
+                // BYE is handled before parsing, so no other command can reach here.
+                throw new TedException("I know \"" + command.getKeyword()
+                        + "\", but I can't do it here.");
         }
     }
 
@@ -188,6 +199,7 @@ public class Ted {
         System.out.println("Got it. I've added this task:");
         System.out.println("  " + task);
         printTaskCount();
+        Storage.save(tasks);
     }
 
     /**
@@ -205,6 +217,7 @@ public class Ted {
         System.out.println("Noted. I've removed this task:");
         System.out.println("  " + removed);
         printTaskCount();
+        Storage.save(tasks);
     }
 
     /**
@@ -230,6 +243,7 @@ public class Ted {
                 ? "Nice! I've marked this task as done:"
                 : "OK, I've marked this task as not done yet:");
         System.out.println("  " + task);
+        Storage.save(tasks);
     }
 
     /**

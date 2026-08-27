@@ -7,6 +7,9 @@
  * detects a problem describe it, while the main loop decides how to show it.
  */
 public class TedException extends Exception {
+    /** Identifies this exception class during Java serialization. */
+    private static final long serialVersionUID = 1L;
+
     /**
      * Creates an exception carrying an explanation written for the user.
      *

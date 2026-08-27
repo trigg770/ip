@@ -27,6 +27,17 @@ public class Event extends Task {
         return "E";
     }
 
+    /**
+     * Appends the start and end times to the shared save-line format, e.g.
+     * {@code E | 0 | Mon 2pm | 4pm | project meeting}.
+     */
+    @Override
+    public String toSaveFormat() {
+        return toSavePrefix() + encodeSaveField(from) + SAVE_FIELD_SEPARATOR
+                + encodeSaveField(to) + SAVE_FIELD_SEPARATOR
+                + encodeSaveField(description);
+    }
+
     /** Appends the start and end times to the shared task format. */
     @Override
     public String toString() {

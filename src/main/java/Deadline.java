@@ -13,7 +13,7 @@ public class Deadline extends Task {
     /**
      * Creates a deadline that is not done yet.
      *
-     * @param description what the user wants to get done.
+     * @param description what the task is.
      * @param by          when the task is due, as typed by the user.
      */
     public Deadline(String description, String by) {
@@ -24,6 +24,16 @@ public class Deadline extends Task {
     @Override
     public String getTypeIcon() {
         return "D";
+    }
+
+    /**
+     * Appends the due time to the shared save-line format, e.g.
+     * {@code D | 0 | Sunday | return book}.
+     */
+    @Override
+    public String toSaveFormat() {
+        return toSavePrefix() + encodeSaveField(by) + SAVE_FIELD_SEPARATOR
+                + encodeSaveField(description);
     }
 
     /** Appends the due time to the shared task format. */
