@@ -34,6 +34,9 @@ public enum CommandType {
     /** Removes a task from the list. */
     DELETE("delete"),
 
+    /** Shows only the tasks whose description contains a keyword. */
+    FIND("find"),
+
     /** Ends the conversation. */
     BYE("bye");
 

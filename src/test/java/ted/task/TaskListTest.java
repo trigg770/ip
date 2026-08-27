@@ -107,6 +107,45 @@ public class TaskListTest {
     }
 
     @Test
+    public void find_keywordInSomeDescriptions_returnsOnlyThose() throws TedException {
+        TaskList tasks = new TaskList(List.of(
+                new Todo("read book"), new Todo("buy milk"), new Todo("return book")));
+
+        TaskList matches = tasks.find("book");
+        assertEquals(2, matches.size());
+        assertEquals("[T][ ] read book", matches.get(0).toString());
+        assertEquals("[T][ ] return book", matches.get(1).toString());
+        // Searching must not disturb the list being searched.
+        assertEquals(3, tasks.size());
+    }
+
+    @Test
+    public void find_keywordInNoDescription_returnsEmptyList() {
+        TaskList tasks = new TaskList(List.of(new Todo("read book")));
+        assertTrue(tasks.find("bicycle").isEmpty());
+    }
+
+    @Test
+    public void find_differingCase_stillMatches() {
+        // A user looking for "book" should not have to remember the case used
+        // when the task was added.
+        TaskList tasks = new TaskList(List.of(new Todo("Read Book")));
+        assertEquals(1, tasks.find("book").size());
+        assertEquals(1, tasks.find("BOOK").size());
+    }
+
+    @Test
+    public void find_partOfAWord_matches() {
+        TaskList tasks = new TaskList(List.of(new Todo("bookshop visit")));
+        assertEquals(1, tasks.find("book").size());
+    }
+
+    @Test
+    public void find_emptyList_returnsEmptyList() {
+        assertTrue(new TaskList().find("book").isEmpty());
+    }
+
+    @Test
     public void asList_returnedList_cannotBeModified() {
         TaskList tasks = new TaskList(List.of(new Todo("only task")));
         List<Task> view = tasks.asList();

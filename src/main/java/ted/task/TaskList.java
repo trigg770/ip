@@ -83,6 +83,26 @@ public class TaskList {
     }
 
     /**
+     * Returns the tasks whose description contains the given keyword.
+     * <p>
+     * The search ignores case, because a user looking for "book" should not
+     * have to remember whether they typed "Book" when adding the task.
+     *
+     * @param keyword text to look for inside task descriptions.
+     * @return the matching tasks, in the order they appear in this list.
+     */
+    public TaskList find(String keyword) {
+        String lowerCaseKeyword = keyword.toLowerCase();
+        TaskList matches = new TaskList();
+        for (Task task : tasks) {
+            if (task.description.toLowerCase().contains(lowerCaseKeyword)) {
+                matches.add(task);
+            }
+        }
+        return matches;
+    }
+
+    /**
      * Returns the tasks as a plain list, for code that only needs to read them.
      *
      * @return an unmodifiable view of the tasks, in order.

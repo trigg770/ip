@@ -14,6 +14,7 @@ import ted.command.AddCommand;
 import ted.command.Command;
 import ted.command.DeleteCommand;
 import ted.command.ExitCommand;
+import ted.command.FindCommand;
 import ted.command.ListCommand;
 import ted.command.MarkCommand;
 import ted.task.Task;
@@ -70,6 +71,23 @@ public class ParserTest {
     @Test
     public void parse_otherCommand_doesNotExit() throws TedException {
         assertFalse(Parser.parse("list").isExit());
+    }
+
+    @Test
+    public void parse_findWithKeyword_returnsFindCommand() throws TedException {
+        assertInstanceOf(FindCommand.class, Parser.parse("find book"));
+    }
+
+    @Test
+    public void parse_findWithMultiWordKeyword_returnsFindCommand() throws TedException {
+        // The whole of the rest of the line is the keyword, spaces included.
+        assertInstanceOf(FindCommand.class, Parser.parse("find return book"));
+    }
+
+    @Test
+    public void parse_findWithoutKeyword_exceptionThrown() {
+        assertThrows(TedException.class, () -> Parser.parse("find"));
+        assertThrows(TedException.class, () -> Parser.parse("find    "));
     }
 
     @Test
