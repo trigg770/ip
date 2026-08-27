@@ -26,6 +26,7 @@ public class Deadline extends Task {
         this.by = by;
     }
 
+    /** {@inheritDoc} A deadline is shown as {@code D}. */
     @Override
     public String getTypeIcon() {
         return "D";

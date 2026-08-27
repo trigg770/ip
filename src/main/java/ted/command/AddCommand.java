@@ -26,6 +26,11 @@ public class AddCommand extends Command {
         this.task = task;
     }
 
+    /**
+     * Adds the task to the list, confirms it, and saves the updated list.
+     *
+     * @throws TedException if the updated list cannot be saved.
+     */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws TedException {
         tasks.add(task);

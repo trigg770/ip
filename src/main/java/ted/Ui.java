@@ -28,6 +28,10 @@ public class Ui {
     /** Reads the user's commands from standard input, one line at a time. */
     private final Scanner scanner = new Scanner(System.in);
 
+    /** Creates a Ui that talks over the terminal. */
+    public Ui() {
+    }
+
     /**
      * Returns whether the user has typed another line.
      * Guards against the input stream ending (e.g. Ctrl-D or a piped file),
