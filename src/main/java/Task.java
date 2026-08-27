@@ -9,6 +9,9 @@
  * icon and add any extra detail to {@link #toString()}.
  */
 public abstract class Task {
+    /** Separator between fields in the save file. */
+    protected static final String SAVE_FIELD_SEPARATOR = " | ";
+
     /** What the user wants to get done. */
     protected String description;
 
@@ -42,6 +45,44 @@ public abstract class Task {
     /** Marks this task as not completed, reversing {@link #markAsDone()}. */
     public void markAsNotDone() {
         this.isDone = false;
+    }
+
+    /**
+     * Converts this task into a single line of the save file format.
+     * <p>
+     * The line carries everything needed to rebuild this task: the type icon
+     * ({@link #getTypeIcon()}), the done flag, the description, and any
+     * type-specific detail. Todo uses the default implementation; subclasses
+     * override it to append their extra fields after {@link #toSavePrefix()}.
+     *
+     * @return one line of the save file, using {@code " | "} as the separator.
+     */
+    public String toSaveFormat() {
+        return toSavePrefix() + encodeSaveField(description);
+    }
+
+    /**
+     * Builds the part of the save line that every task shares: the type icon,
+     * the done flag, and a trailing separator. Subclasses append their extra
+     * fields (such as {@code by} or {@code from | to}) after this prefix.
+     *
+     * @return the common prefix, ending right before the description.
+     */
+    protected String toSavePrefix() {
+        return getTypeIcon() + SAVE_FIELD_SEPARATOR
+                + (isDone ? "1" : "0") + SAVE_FIELD_SEPARATOR;
+    }
+
+    /**
+     * Escapes characters that have a structural meaning in a save line.
+     * Backslashes are escaped first so that decoding can distinguish a literal
+     * backslash from one that protects a pipe character.
+     *
+     * @param field one task field to store.
+     * @return the field with backslashes and pipe characters escaped.
+     */
+    protected static String encodeSaveField(String field) {
+        return field.replace("\\", "\\\\").replace("|", "\\|");
     }
 
     /**
