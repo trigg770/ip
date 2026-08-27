@@ -1,3 +1,6 @@
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -7,7 +10,11 @@ import java.util.Scanner;
  * and can mark, unmark and delete them, until the user enters {@code bye}.
  */
 public class Ted {
-    /** Separator introducing a deadline's due time. */
+    /** Format expected for date-times entered in deadline and event commands. */
+    private static final DateTimeFormatter INPUT_DATE_TIME_FORMAT =
+            DateTimeFormatter.ofPattern("d/M/uuuu HHmm");
+
+    /** Separator introducing a deadline's due date and time. */
     private static final String OPTION_BY = "/by";
 
     /** Separator introducing an event's start time. */
@@ -137,14 +144,14 @@ public class Ted {
     }
 
     /**
-     * Adds a task due by a given time, from an argument of the form
-     * {@code <description> /by <time>}.
+     * Adds a task due by a given date and time, from an argument of the form
+     * {@code <description> /by <d/M/uuuu HHmm>}.
      *
      * @param argument everything the user typed after the command word.
-     * @throws TedException if the description or the due time is missing.
+     * @throws TedException if the description or due date-time is missing or invalid.
      */
     private static void addDeadline(String argument) throws TedException {
-        String example = "for example: deadline return book /by Sunday";
+        String example = "for example: deadline return book /by 2/12/2019 1800";
         requireNotBlank(argument, "A deadline needs a description and a due time, " + example);
 
         int separator = argument.indexOf(OPTION_BY);
@@ -156,19 +163,19 @@ public class Ted {
         String by = argument.substring(separator + OPTION_BY.length()).trim();
         requireNotBlank(description, "A deadline needs a description before /by, " + example);
         requireNotBlank(by, "A deadline needs a due time after /by, " + example);
-        addTask(new Deadline(description, by));
+        addTask(new Deadline(description, parseDateTime(by, example)));
     }
 
     /**
-     * Adds a task spanning two times, from an argument of the form
-     * {@code <description> /from <start> /to <end>}.
+     * Adds a task spanning two date-times, from an argument of the form
+     * {@code <description> /from <d/M/uuuu HHmm> /to <d/M/uuuu HHmm>}.
      *
      * @param argument everything the user typed after the command word.
-     * @throws TedException if the description, the start or the end is missing,
-     *                      or the two times are given in the wrong order.
+     * @throws TedException if the description, the start or the end is missing
+     *                      or unreadable, or the event ends before it starts.
      */
     private static void addEvent(String argument) throws TedException {
-        String example = "for example: event project meeting /from Mon 2pm /to 4pm";
+        String example = "for example: event project meeting /from 2/12/2019 1400 /to 2/12/2019 1600";
         requireNotBlank(argument, "An event needs a description, a start and an end, " + example);
 
         int fromSeparator = argument.indexOf(OPTION_FROM);
@@ -186,7 +193,34 @@ public class Ted {
         requireNotBlank(description, "An event needs a description before /from, " + example);
         requireNotBlank(from, "An event needs a start time after /from, " + example);
         requireNotBlank(to, "An event needs an end time after /to, " + example);
-        addTask(new Event(description, from, to));
+
+        LocalDateTime start = parseDateTime(from, example);
+        LocalDateTime end = parseDateTime(to, example);
+        if (end.isBefore(start)) {
+            // Now that the times are real date-times rather than free text, Ted can
+            // spot an impossible event before it is stored.
+            throw new TedException("An event cannot end before it starts, " + example);
+        }
+        addTask(new Event(description, start, end));
+    }
+
+    /**
+     * Turns a date and time typed by the user into a {@link LocalDateTime}.
+     *
+     * @param text    date and time as typed, e.g. {@code 2/12/2019 1800}.
+     * @param example wording showing the expected format, used in the error message.
+     * @return the date and time the text stands for.
+     * @throws TedException if the text is not in the expected format.
+     */
+    private static LocalDateTime parseDateTime(String text, String example) throws TedException {
+        try {
+            return LocalDateTime.parse(text, INPUT_DATE_TIME_FORMAT);
+        } catch (DateTimeParseException e) {
+            // Rethrown as a TedException so the main loop reports it like any other
+            // problem with the user's input, instead of crashing.
+            throw new TedException("I can't read \"" + text + "\" as a date and time. "
+                    + "Please use d/M/yyyy HHmm, " + example);
+        }
     }
 
     /**
