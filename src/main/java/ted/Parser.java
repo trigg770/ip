@@ -3,6 +3,7 @@ package ted;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
 import ted.command.AddCommand;
 import ted.command.Command;
@@ -25,9 +26,14 @@ import ted.task.Todo;
  * can be tested without a keyboard or a save file.
  */
 public class Parser {
-    /** Format expected for date-times entered in deadline and event commands. */
+    /**
+     * Format expected for date-times entered in deadline and event commands.
+     * The strict resolver is chosen because the default one quietly rounds an
+     * impossible date down -- 31/2/2019 would otherwise become 28 Feb, giving
+     * the user a task on a day they never asked for.
+     */
     private static final DateTimeFormatter INPUT_DATE_TIME_FORMAT =
-            DateTimeFormatter.ofPattern("d/M/uuuu HHmm");
+            DateTimeFormatter.ofPattern("d/M/uuuu HHmm").withResolverStyle(ResolverStyle.STRICT);
 
     /** Separator introducing a deadline's due date and time. */
     private static final String OPTION_BY = "/by";
