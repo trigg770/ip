@@ -1,6 +1,8 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -15,8 +17,8 @@ import java.util.regex.Pattern;
  *
  * <pre>
  * T | 0 | borrow book
- * D | 0 | June 6th | return book
- * E | 0 | Aug 6th | 2-4pm | project meeting
+ * D | 0 | 2019-06-06T18:00 | return book
+ * E | 0 | 2019-08-06T14:00 | 2019-08-06T16:00 | project meeting
  * </pre>
  */
 public class Storage {
@@ -117,21 +119,41 @@ public class Storage {
         }
 
         String description = decodeSaveField(fields[fieldCount - 1]);
-        switch (icon) {
-            case "T":
-                return withDone(new Todo(description), fields[1].equals("1"));
-            case "D":
-                return withDone(new Deadline(
-                        description, decodeSaveField(fields[2])), fields[1].equals("1"));
-            case "E":
-                return withDone(new Event(
-                        description,
-                        decodeSaveField(fields[2]),
-                        decodeSaveField(fields[3])),
-                        fields[1].equals("1"));
-            default:
-                return null; // Unreachable: fieldCountFor accepts only T, D, and E.
+        boolean isDone = fields[1].equals("1");
+        try {
+            switch (icon) {
+                case "T":
+                    return withDone(new Todo(description), isDone);
+                case "D":
+                    return withDone(new Deadline(
+                            description, parseSavedDateTime(fields[2])), isDone);
+                case "E":
+                    return withDone(new Event(
+                            description,
+                            parseSavedDateTime(fields[2]),
+                            parseSavedDateTime(fields[3])),
+                            isDone);
+                default:
+                    return null; // Unreachable: fieldCountFor accepts only T, D, and E.
+            }
+        } catch (DateTimeParseException e) {
+            // A line whose date cannot be read is corrupted as far as Ted is
+            // concerned; the caller reports it and carries on with the rest.
+            return null;
         }
+    }
+
+    /**
+     * Reads back a date and time written by {@link LocalDateTime#toString()}.
+     * The saved form is ISO-8601 rather than the format shown to the user, so
+     * that the file stays unambiguous and independent of Ted's display format.
+     *
+     * @param field one encoded date-time field from the save file.
+     * @return the date and time it stands for.
+     * @throws DateTimeParseException if the field is not a valid ISO date-time.
+     */
+    private static LocalDateTime parseSavedDateTime(String field) {
+        return LocalDateTime.parse(decodeSaveField(field));
     }
 
     /**
