@@ -29,6 +29,11 @@ public class MarkCommand extends Command {
         this.isDone = isDone;
     }
 
+    /**
+     * Changes the task's done status, shows the result, and saves the list.
+     *
+     * @throws TedException if no task has that number, or the list cannot be saved.
+     */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws TedException {
         Task task = tasks.get(index);

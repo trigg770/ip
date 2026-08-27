@@ -31,6 +31,7 @@ public class Event extends Task {
         this.to = to;
     }
 
+    /** {@inheritDoc} An event is shown as {@code E}. */
     @Override
     public String getTypeIcon() {
         return "E";

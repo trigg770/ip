@@ -14,6 +14,7 @@ public class Todo extends Task {
         super(description);
     }
 
+    /** {@inheritDoc} A todo is shown as {@code T}. */
     @Override
     public String getTypeIcon() {
         return "T";

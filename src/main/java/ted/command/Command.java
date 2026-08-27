@@ -14,6 +14,10 @@ import ted.task.TaskList;
  * which means the details are already checked by the time it is executed.
  */
 public abstract class Command {
+    /** Creates a command. Called only by the subclass being created. */
+    protected Command() {
+    }
+
     /**
      * Carries out this command.
      *

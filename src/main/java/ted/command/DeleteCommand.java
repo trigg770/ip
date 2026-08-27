@@ -24,6 +24,11 @@ public class DeleteCommand extends Command {
         this.index = index;
     }
 
+    /**
+     * Removes the task, echoes what was removed, and saves the shortened list.
+     *
+     * @throws TedException if no task has that number, or the list cannot be saved.
+     */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws TedException {
         Task removed = tasks.remove(index);
