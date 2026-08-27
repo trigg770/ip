@@ -8,12 +8,14 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * Persists the task list to a human-editable text file so that Ted's tasks
- * survive between runs.
+ * Loads the task list from a human-editable text file and saves it back, so
+ * that Ted's tasks survive between runs.
  * <p>
- * The file lives at {@code data/ted.txt}, a relative path from wherever Ted is
- * run from, so it works the same on any computer and any OS. Each task is one
- * line, formatted by {@link Task#toSaveFormat()}:
+ * The file path is given to the constructor rather than hard-coded, which lets
+ * tests point Ted at a scratch file instead of the real one. A relative path
+ * such as {@code data/ted.txt} is built with {@link Path}, so it works the same
+ * on any computer and any operating system. Each task is one line, formatted
+ * by {@link Task#toSaveFormat()}:
  *
  * <pre>
  * T | 0 | borrow book
@@ -22,12 +24,6 @@ import java.util.regex.Pattern;
  * </pre>
  */
 public class Storage {
-    /** Folder holding the data file, created on first save if missing. */
-    private static final Path DATA_DIR = Path.of("data");
-
-    /** File the task list is persisted to, relative to the project root. */
-    private static final Path DATA_FILE = DATA_DIR.resolve("ted.txt");
-
     /**
      * The save-field separator, ready to use as a regex in {@link String#split}.
      * {@link Pattern#quote(String)} ensures the pipe is treated as text rather
@@ -35,58 +31,93 @@ public class Storage {
      */
     private static final String FIELD_SEPARATOR_REGEX = Pattern.quote(Task.SAVE_FIELD_SEPARATOR);
 
+    /** File the task list is persisted to. */
+    private final Path dataFile;
+
+    /** How many lines the last {@link #load()} could not make sense of. */
+    private int skippedLineCount = 0;
+
+    /**
+     * Creates storage backed by the given file.
+     *
+     * @param filePath where to keep the tasks, e.g. {@code data/ted.txt}.
+     */
+    public Storage(String filePath) {
+        this.dataFile = Path.of(filePath);
+    }
+
     /**
      * Writes every task to the data file, replacing its previous content.
      * The file is always written even when the list is empty, so that deleting
-     * all tasks is remembered.
+     * all tasks is remembered. Any missing parent folder is created first,
+     * which is what makes the very first run work on a fresh computer.
      *
      * @param tasks the tasks to persist.
+     * @throws TedException if the file cannot be written.
      */
-    public static void save(List<Task> tasks) {
+    public void save(TaskList tasks) throws TedException {
         try {
-            Files.createDirectories(DATA_DIR);
+            Path parentDir = dataFile.getParent();
+            if (parentDir != null) {
+                Files.createDirectories(parentDir);
+            }
+
             List<String> lines = new ArrayList<>();
-            for (Task task : tasks) {
+            for (Task task : tasks.asList()) {
                 lines.add(task.toSaveFormat());
             }
-            Files.write(DATA_FILE, lines);
+            Files.write(dataFile, lines);
         } catch (IOException e) {
-            System.out.println("Unable to save tasks to " + DATA_FILE + " (" + e.getMessage() + ").");
+            throw new TedException("Unable to save tasks to " + dataFile
+                    + " (" + e.getMessage() + ").");
         }
     }
 
     /**
      * Reads the task list back from the data file.
+     * A line that is not in the expected format is skipped rather than allowed
+     * to take down startup; {@link #getSkippedLineCount()} reports how many.
      *
      * @return the tasks in the order they were saved, or an empty list if the
      *         file does not exist yet (first run).
+     * @throws TedException if the file exists but cannot be read.
      */
-    public static List<Task> load() {
+    public List<Task> load() throws TedException {
         List<Task> tasks = new ArrayList<>();
+        skippedLineCount = 0;
 
-        if (Files.notExists(DATA_FILE)) {
+        if (Files.notExists(dataFile)) {
             return tasks;
         }
 
         try {
-            for (String line : Files.readAllLines(DATA_FILE)) {
+            for (String line : Files.readAllLines(dataFile)) {
                 if (line.isBlank()) {
                     // A stray blank line (e.g. at the end of the file) is not a task.
                     continue;
                 }
+
                 Task task = parseLine(line);
                 if (task == null) {
-                    // A corrupted line must not take down startup; report it and keep
-                    // loading the rest of the file.
-                    System.out.println("Skipping an unreadable line in " + DATA_FILE + ": " + line);
+                    skippedLineCount++;
                 } else {
                     tasks.add(task);
                 }
             }
         } catch (IOException e) {
-            System.out.println("Unable to load tasks from " + DATA_FILE + " (" + e.getMessage() + ").");
+            throw new TedException("Unable to load tasks from " + dataFile
+                    + " (" + e.getMessage() + ").");
         }
         return tasks;
+    }
+
+    /**
+     * Returns how many lines the last {@link #load()} had to skip.
+     *
+     * @return the number of unreadable lines, or 0 if the file was clean.
+     */
+    public int getSkippedLineCount() {
+        return skippedLineCount;
     }
 
     /**
@@ -138,7 +169,7 @@ public class Storage {
             }
         } catch (DateTimeParseException e) {
             // A line whose date cannot be read is corrupted as far as Ted is
-            // concerned; the caller reports it and carries on with the rest.
+            // concerned; the caller counts it and carries on with the rest.
             return null;
         }
     }
