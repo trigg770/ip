@@ -173,7 +173,8 @@ public class Storage {
                             parseSavedDateTime(fields[3])),
                             isDone);
                 default:
-                    return null; // Unreachable: fieldCountFor accepts only T, D, and E.
+                    // Unreachable: fieldCountFor accepts only T, D and E.
+                    return null;
             }
         } catch (DateTimeParseException e) {
             // A line whose date cannot be read is corrupted as far as Ted is
