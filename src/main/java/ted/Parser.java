@@ -1,6 +1,19 @@
+package ted;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+
+import ted.command.AddCommand;
+import ted.command.Command;
+import ted.command.CommandType;
+import ted.command.DeleteCommand;
+import ted.command.ExitCommand;
+import ted.command.ListCommand;
+import ted.command.MarkCommand;
+import ted.task.Deadline;
+import ted.task.Event;
+import ted.task.Todo;
 
 /**
  * Turns a line typed by the user into the {@link Command} it stands for.
@@ -128,7 +141,7 @@ public class Parser {
 
     /**
      * Converts a task number typed by the user into an index into the task list.
-     * Whether the number points at a real task is checked by {@link TaskList}
+     * Whether the number points at a real task is checked by {@link ted.task.TaskList}
      * when the command runs, since only then is the list at hand.
      *
      * @param argument    task number as typed by the user, counting from 1.

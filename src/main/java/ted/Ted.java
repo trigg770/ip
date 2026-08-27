@@ -1,3 +1,8 @@
+package ted;
+
+import ted.command.Command;
+import ted.task.TaskList;
+
 /**
  * Entry point of the Ted chatbot.
  * Ted stores todos, deadlines and events, lists the stored tasks on request,

@@ -1,3 +1,11 @@
+package ted.command;
+
+import ted.Storage;
+import ted.TedException;
+import ted.Ui;
+import ted.task.Task;
+import ted.task.TaskList;
+
 /**
  * Marks a task as done, or reverses that.
  * Marking and unmarking differ only in the stored flag and the wording, so one

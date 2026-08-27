@@ -1,3 +1,5 @@
+package ted;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -6,6 +8,12 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import ted.task.Deadline;
+import ted.task.Event;
+import ted.task.Task;
+import ted.task.TaskList;
+import ted.task.Todo;
 
 /**
  * Loads the task list from a human-editable text file and saves it back, so

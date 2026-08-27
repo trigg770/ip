@@ -1,3 +1,5 @@
+package ted.task;
+
 /**
  * A single task that Ted keeps track of.
  * Bundles a task's description with its done status, so that the two can no
@@ -10,7 +12,7 @@
  */
 public abstract class Task {
     /** Separator between fields in the save file. */
-    protected static final String SAVE_FIELD_SEPARATOR = " | ";
+    public static final String SAVE_FIELD_SEPARATOR = " | ";
 
     /** What the user wants to get done. */
     protected String description;

@@ -1,3 +1,7 @@
+package ted.command;
+
+import ted.TedException;
+
 /**
  * The kinds of command Ted understands, together with the keyword the user
  * types for each one.
