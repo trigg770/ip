@@ -27,10 +27,6 @@ import ted.task.Todo;
  * can be tested without a keyboard or a save file.
  */
 public class Parser {
-    /** Parser is used through its static methods only, so it is never created. */
-    private Parser() {
-    }
-
     /**
      * Format expected for date-times entered in deadline and event commands.
      * The strict resolver is chosen because the default one quietly rounds an
@@ -48,6 +44,10 @@ public class Parser {
 
     /** Separator introducing an event's end time. */
     private static final String OPTION_TO = "/to";
+
+    /** Parser is used through its static methods only, so it is never created. */
+    private Parser() {
+    }
 
     /**
      * Reads one line of user input as a command.
