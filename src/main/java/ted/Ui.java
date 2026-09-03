@@ -9,10 +9,14 @@ import ted.task.TaskList;
 /**
  * Handles everything Ted says to the user and everything the user types back.
  * <p>
- * Keeping all of the console work in one class means the rest of Ted never
- * calls {@code System.out} directly: the wording of a message can change, or
- * the whole conversation can be moved to a window instead of a terminal, by
+ * Keeping all of the wording in one class means the rest of Ted never calls
+ * {@code System.out} directly: the wording of a message can change, or the
+ * whole conversation can be moved to a window instead of a terminal, by
  * editing this class alone.
+ * <p>
+ * Each {@code show} method adds to the reply being built rather than printing
+ * it. {@link #flush()} hands the finished reply back, so the terminal can print
+ * it while the GUI puts it in a dialog box.
  */
 public class Ui {
     /** Horizontal rule framing each of Ted's replies. */
@@ -28,7 +32,10 @@ public class Ui {
     /** Reads the user's commands from standard input, one line at a time. */
     private final Scanner scanner = new Scanner(System.in);
 
-    /** Creates a Ui that talks over the terminal. */
+    /** The reply being built, emptied by each call to {@link #flush()}. */
+    private final StringBuilder reply = new StringBuilder();
+
+    /** Creates a Ui with nothing said yet. */
     public Ui() {
     }
 
@@ -52,23 +59,39 @@ public class Ui {
         return scanner.nextLine().trim();
     }
 
-    /** Prints the horizontal rule that frames each reply. */
-    public void showLine() {
+    /**
+     * Returns everything said since the previous call and starts a fresh reply.
+     *
+     * @return the finished reply, without a trailing newline.
+     */
+    public String flush() {
+        String finishedReply = reply.toString().strip();
+        reply.setLength(0);
+        return finishedReply;
+    }
+
+    /**
+     * Prints a finished reply to the terminal, framed by horizontal rules.
+     * Used by the text interface only; the GUI shows the same text in a
+     * dialog box, where the rules would be clutter.
+     *
+     * @param finishedReply the reply to print, as returned by {@link #flush()}.
+     */
+    public void printReply(String finishedReply) {
+        System.out.println(DIVIDER);
+        System.out.println(finishedReply);
         System.out.println(DIVIDER);
     }
 
     /** Greets the user at startup. */
     public void showWelcome() {
-        showLine();
-        System.out.println(BANNER + "Hello! I'm Ted.\nWhat can I do for you?");
-        showLine();
+        show(BANNER + "Hello! I'm Ted.");
+        show("What can I do for you?");
     }
 
     /** Says goodbye just before Ted stops. */
     public void showGoodbye() {
-        showLine();
-        System.out.println("Bye. Hope to see you again soon!");
-        showLine();
+        show("Bye. Hope to see you again soon!");
     }
 
     /**
@@ -77,7 +100,7 @@ public class Ui {
      * @param message explanation of what went wrong, phrased as Ted would say it.
      */
     public void showError(String message) {
-        System.out.println(message);
+        show(message);
     }
 
     /**
@@ -86,8 +109,8 @@ public class Ui {
      * @param message explanation of what went wrong.
      */
     public void showLoadingError(String message) {
-        System.out.println("I couldn't read your saved tasks (" + message + ").");
-        System.out.println("Starting with an empty list.");
+        show("I couldn't read your saved tasks (" + message + ").");
+        show("Starting with an empty list.");
     }
 
     /**
@@ -97,7 +120,7 @@ public class Ui {
      */
     public void showSkippedLines(int skippedLineCount) {
         String lineWord = skippedLineCount == 1 ? "line" : "lines";
-        System.out.println("Skipped " + skippedLineCount + " unreadable " + lineWord
+        show("Skipped " + skippedLineCount + " unreadable " + lineWord
                 + " in your save file.");
     }
 
@@ -108,8 +131,8 @@ public class Ui {
      * @param taskCount how many tasks are now stored.
      */
     public void showAdded(Task task, int taskCount) {
-        System.out.println("Got it. I've added this task:");
-        System.out.println("  " + task);
+        show("Got it. I've added this task:");
+        show("  " + task);
         showTaskCount(taskCount);
     }
 
@@ -122,8 +145,8 @@ public class Ui {
      * @param taskCount how many tasks are left.
      */
     public void showRemoved(Task task, int taskCount) {
-        System.out.println("Noted. I've removed this task:");
-        System.out.println("  " + task);
+        show("Noted. I've removed this task:");
+        show("  " + task);
         showTaskCount(taskCount);
     }
 
@@ -134,10 +157,10 @@ public class Ui {
      * @param isDone {@code true} if the task was marked done, {@code false} if reversed.
      */
     public void showMarked(Task task, boolean isDone) {
-        System.out.println(isDone
+        show(isDone
                 ? "Nice! I've marked this task as done:"
                 : "OK, I've marked this task as not done yet:");
-        System.out.println("  " + task);
+        show("  " + task);
     }
 
     /**
@@ -171,21 +194,26 @@ public class Ui {
      */
     private void showNumbered(TaskList tasks, String header, String emptyMessage) {
         if (tasks.isEmpty()) {
-            System.out.println(emptyMessage);
+            show(emptyMessage);
             return;
         }
 
-        System.out.println(header);
+        show(header);
         List<Task> taskList = tasks.asList();
         for (int i = 0; i < taskList.size(); i++) {
             // Displayed numbering is 1-based even though list indices are 0-based.
-            System.out.println((i + 1) + "." + taskList.get(i));
+            show((i + 1) + "." + taskList.get(i));
         }
+    }
+
+    /** Adds one line to the reply being built. */
+    private void show(String line) {
+        reply.append(line).append(System.lineSeparator());
     }
 
     /** Tells the user how many tasks are now stored. */
     private void showTaskCount(int taskCount) {
         String taskWord = taskCount == 1 ? "task" : "tasks";
-        System.out.println("Now you have " + taskCount + " " + taskWord + " in the list.");
+        show("Now you have " + taskCount + " " + taskWord + " in the list.");
     }
 }

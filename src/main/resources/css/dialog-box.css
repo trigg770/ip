@@ -1,0 +1,26 @@
+.label {
+    /* Ted's welcome draws its name in ASCII art, which only lines up in a
+       monospaced font. The task lists line up under it for the same reason. */
+    -fx-font-family: "Menlo", "Consolas", monospace;
+    -fx-font-size: 12px;
+    -fx-background-color: #dce8f7;
+    -fx-border-color: #b3c7e0;
+    -fx-border-width: 1px;
+    -fx-background-radius: 1em 1em 0 1em;
+    -fx-border-radius: 1em 1em 0 1em;
+    -fx-padding: 6px;
+    -fx-border-insets: 0px 7px 0px 7px;
+    -fx-background-insets: 0px 7px 0px 7px;
+}
+
+/* Ted's side of the conversation: the flat corner moves to mirror the user's. */
+.reply-label {
+    -fx-background-color: #e6ecf0;
+    -fx-border-color: #ccd6de;
+    -fx-background-radius: 1em 1em 1em 0;
+    -fx-border-radius: 1em 1em 1em 0;
+}
+
+#displayPicture {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 5, 5);
+}

@@ -1,0 +1,47 @@
+.root {
+    main-color: rgb(244, 246, 248);
+    -fx-background-color: main-color;
+}
+
+.text-field {
+    -fx-background-color: white;
+    -fx-border-color: #c8d0d8;
+    -fx-border-width: 1px;
+    -fx-font: 14px "Arial";
+}
+
+.button {
+    -fx-background-color: #4a6fa5;
+    -fx-text-fill: white;
+    -fx-font: bold 14px "Arial";
+}
+
+.button:hover {
+    -fx-background-color: #5b83bd;
+}
+
+.button:pressed {
+    -fx-background-color: #37567f;
+}
+
+.scroll-pane,
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar {
+    -fx-font-size: 10px;  /* Sets the width of the scroll bar. */
+    -fx-background-color: main-color;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #b6c2ce;
+    -fx-background-radius: 1em;
+}
+
+/* Hides the increment and decrement buttons. */
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-pref-height: 0;
+    -fx-opacity: 0;
+}
