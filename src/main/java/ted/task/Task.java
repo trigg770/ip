@@ -56,24 +56,36 @@ public abstract class Task {
      * The line carries everything needed to rebuild this task: the type icon
      * ({@link #getTypeIcon()}), the done flag, the description, and any
      * type-specific detail. Todo uses the default implementation; subclasses
-     * override it to append their extra fields after {@link #toSavePrefix()}.
+     * override it to pass their extra fields to {@link #toSaveLine(String...)}.
      *
      * @return one line of the save file, using {@code " | "} as the separator.
      */
     public String toSaveFormat() {
-        return toSavePrefix() + encodeSaveField(description);
+        return toSaveLine();
     }
 
     /**
-     * Builds the part of the save line that every task shares: the type icon,
-     * the done flag, and a trailing separator. Subclasses append their extra
-     * fields (such as {@code by} or {@code from | to}) after this prefix.
+     * Builds one save line from the fields every task shares and the extra
+     * fields this kind of task adds.
+     * <p>
+     * The number of extra fields differs per task type -- a todo has none, a
+     * deadline one, an event two -- so they are taken as varargs. Each caller
+     * then names its own fields in order and this method alone deals with
+     * escaping them and placing the separators.
      *
-     * @return the common prefix, ending right before the description.
+     * @param extraFields type-specific fields, in the order they are saved,
+     *                    stored between the done flag and the description.
+     * @return one line of the save file, using {@code " | "} as the separator.
      */
-    protected String toSavePrefix() {
-        return getTypeIcon() + SAVE_FIELD_SEPARATOR
-                + (isDone ? "1" : "0") + SAVE_FIELD_SEPARATOR;
+    protected String toSaveLine(String... extraFields) {
+        StringBuilder line = new StringBuilder();
+        line.append(getTypeIcon()).append(SAVE_FIELD_SEPARATOR)
+                .append(isDone ? "1" : "0").append(SAVE_FIELD_SEPARATOR);
+        for (String field : extraFields) {
+            line.append(encodeSaveField(field)).append(SAVE_FIELD_SEPARATOR);
+        }
+        // The description goes last, where it can safely contain separators.
+        return line.append(encodeSaveField(description)).toString();
     }
 
     /**

@@ -85,8 +85,8 @@ public class Ui {
 
     /** Greets the user at startup. */
     public void showWelcome() {
-        show(BANNER + "Hello! I'm Ted.");
-        show("What can I do for you?");
+        show(BANNER + "Hello! I'm Ted.",
+                "What can I do for you?");
     }
 
     /** Says goodbye just before Ted stops. */
@@ -109,8 +109,8 @@ public class Ui {
      * @param message explanation of what went wrong.
      */
     public void showLoadingError(String message) {
-        show("I couldn't read your saved tasks (" + message + ").");
-        show("Starting with an empty list.");
+        show("I couldn't read your saved tasks (" + message + ").",
+                "Starting with an empty list.");
     }
 
     /**
@@ -131,8 +131,8 @@ public class Ui {
      * @param taskCount how many tasks are now stored.
      */
     public void showAdded(Task task, int taskCount) {
-        show("Got it. I've added this task:");
-        show("  " + task);
+        show("Got it. I've added this task:",
+                "  " + task);
         showTaskCount(taskCount);
     }
 
@@ -145,8 +145,8 @@ public class Ui {
      * @param taskCount how many tasks are left.
      */
     public void showRemoved(Task task, int taskCount) {
-        show("Noted. I've removed this task:");
-        show("  " + task);
+        show("Noted. I've removed this task:",
+                "  " + task);
         showTaskCount(taskCount);
     }
 
@@ -158,9 +158,9 @@ public class Ui {
      */
     public void showMarked(Task task, boolean isDone) {
         show(isDone
-                ? "Nice! I've marked this task as done:"
-                : "OK, I've marked this task as not done yet:");
-        show("  " + task);
+                        ? "Nice! I've marked this task as done:"
+                        : "OK, I've marked this task as not done yet:",
+                "  " + task);
     }
 
     /**
@@ -206,9 +206,17 @@ public class Ui {
         }
     }
 
-    /** Adds one line to the reply being built. */
-    private void show(String line) {
-        reply.append(line).append(System.lineSeparator());
+    /**
+     * Adds lines to the reply being built.
+     * Most replies are a fixed handful of lines, so taking them as varargs lets
+     * each one be written as a single call that reads like the reply itself.
+     *
+     * @param lines the lines to add, in order.
+     */
+    private void show(String... lines) {
+        for (String line : lines) {
+            reply.append(line).append(System.lineSeparator());
+        }
     }
 
     /** Tells the user how many tasks are now stored. */
