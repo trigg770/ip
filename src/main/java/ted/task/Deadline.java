@@ -38,8 +38,7 @@ public class Deadline extends Task {
      */
     @Override
     public String toSaveFormat() {
-        return toSavePrefix() + encodeSaveField(by.toString()) + SAVE_FIELD_SEPARATOR
-                + encodeSaveField(description);
+        return toSaveLine(by.toString());
     }
 
     /** Appends a user-friendly due date and time to the shared task format. */

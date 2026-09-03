@@ -43,9 +43,7 @@ public class Event extends Task {
      */
     @Override
     public String toSaveFormat() {
-        return toSavePrefix() + encodeSaveField(from.toString()) + SAVE_FIELD_SEPARATOR
-                + encodeSaveField(to.toString()) + SAVE_FIELD_SEPARATOR
-                + encodeSaveField(description);
+        return toSaveLine(from.toString(), to.toString());
     }
 
     /** Appends user-friendly start and end date-times to the shared task format. */
