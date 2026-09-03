@@ -127,8 +127,7 @@ public class ParserTest {
 
     @Test
     public void parse_deadlineWithUnreadableDateTime_exceptionThrown() {
-        TedException e = assertThrows(TedException.class,
-                () -> Parser.parse("deadline return book /by tomorrow"));
+        TedException e = assertThrows(TedException.class, () -> Parser.parse("deadline return book /by tomorrow"));
         assertTrue(e.getMessage().contains("tomorrow"));
     }
 
@@ -141,8 +140,7 @@ public class ParserTest {
 
     @Test
     public void parse_deadlineWithImpossibleDate_exceptionThrown() {
-        assertThrows(TedException.class,
-                () -> Parser.parse("deadline return book /by 31/2/2019 1800"));
+        assertThrows(TedException.class, () -> Parser.parse("deadline return book /by 31/2/2019 1800"));
     }
 
     @Test
@@ -153,14 +151,12 @@ public class ParserTest {
 
     @Test
     public void parse_eventWithSeparatorsSwapped_exceptionThrown() {
-        assertThrows(TedException.class,
-                () -> Parser.parse("event meeting /to 2/12/2019 1600 /from 2/12/2019 1400"));
+        assertThrows(TedException.class, () -> Parser.parse("event meeting /to 2/12/2019 1600 /from 2/12/2019 1400"));
     }
 
     @Test
     public void parse_eventEndingBeforeStart_exceptionThrown() {
-        assertThrows(TedException.class,
-                () -> Parser.parse("event meeting /from 2/12/2019 1600 /to 2/12/2019 1400"));
+        assertThrows(TedException.class, () -> Parser.parse("event meeting /from 2/12/2019 1600 /to 2/12/2019 1400"));
     }
 
     @Test
