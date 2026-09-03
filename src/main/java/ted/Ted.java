@@ -8,6 +8,10 @@ import ted.task.TaskList;
  * Ted stores todos, deadlines and events, lists the stored tasks on request,
  * and can mark, unmark and delete them, until the user enters {@code bye}.
  * <p>
+ * The same conversation is offered two ways: {@link #run()} drives it from the
+ * terminal, while {@link #getResponse(String)} answers one message at a time so
+ * that the GUI can drive it instead. Both share the work below.
+ * <p>
  * This class only wires the parts together and runs the conversation loop: the
  * talking belongs to {@link Ui}, the tasks to {@link TaskList}, the save file
  * to {@link Storage}, reading the user's words to {@link Parser}, and the work
@@ -25,6 +29,18 @@ public class Ted {
 
     /** The tasks entered so far. */
     private TaskList tasks;
+
+    /** Whether the last handled command asked Ted to stop. */
+    private boolean isExit = false;
+
+    /**
+     * Creates a Ted that keeps its tasks in the usual place.
+     * JavaFX builds the application through a no-argument constructor, so this
+     * one exists for the GUI to use.
+     */
+    public Ted() {
+        this(DATA_FILE_PATH);
+    }
 
     /**
      * Creates a Ted whose tasks are kept in the given file, restoring whatever
@@ -52,8 +68,8 @@ public class Ted {
     /** Greets the user, then handles commands until the conversation ends. */
     public void run() {
         ui.showWelcome();
+        ui.printReply(ui.flush());
 
-        boolean isExit = false;
         // hasNextCommand() also stops the loop when the input stream ends,
         // e.g. on Ctrl-D or at the end of a piped file.
         while (!isExit && ui.hasNextCommand()) {
@@ -62,33 +78,71 @@ public class Ted {
                 // A stray blank line is not worth a reply.
                 continue;
             }
-
-            Command command;
-            try {
-                command = Parser.parse(input);
-            } catch (TedException e) {
-                // Every problem Ted can recognise is recoverable, so the message is
-                // shown and the conversation continues with the next command.
-                showFramed(() -> ui.showError(e.getMessage()));
-                continue;
-            }
-
-            isExit = command.isExit();
-            if (isExit) {
-                // Quitting gets the goodbye below rather than an ordinary reply.
-                break;
-            }
-
-            showFramed(() -> {
-                try {
-                    command.execute(tasks, ui, storage);
-                } catch (TedException e) {
-                    ui.showError(e.getMessage());
-                }
-            });
+            ui.printReply(getResponse(input));
         }
 
-        ui.showGoodbye();
+        if (!isExit) {
+            // The input ran out before the user said bye, but they still get one.
+            ui.showGoodbye();
+            ui.printReply(ui.flush());
+        }
+    }
+
+    /**
+     * Handles one message from the user and returns what Ted says back.
+     *
+     * @param input one line of user input, as typed.
+     * @return Ted's reply, or an empty string if there was nothing to reply to.
+     */
+    public String getResponse(String input) {
+        if (input.isBlank()) {
+            // A stray blank line is not worth a reply.
+            return "";
+        }
+
+        Command command;
+        try {
+            command = Parser.parse(input);
+        } catch (TedException e) {
+            // Every problem Ted can recognise is recoverable, so the message is
+            // shown and the conversation continues with the next command.
+            ui.showError(e.getMessage());
+            return ui.flush();
+        }
+
+        isExit = command.isExit();
+        if (isExit) {
+            // Quitting gets the goodbye rather than an ordinary reply.
+            ui.showGoodbye();
+            return ui.flush();
+        }
+
+        try {
+            command.execute(tasks, ui, storage);
+        } catch (TedException e) {
+            ui.showError(e.getMessage());
+        }
+        return ui.flush();
+    }
+
+    /**
+     * Returns Ted's opening message, including any complaint about the save file.
+     *
+     * @return the greeting to show before the user has typed anything.
+     */
+    public String getGreeting() {
+        ui.showWelcome();
+        return ui.flush();
+    }
+
+    /**
+     * Returns whether the last command handled asked Ted to stop.
+     * The GUI uses this to close its window once the goodbye has been shown.
+     *
+     * @return {@code true} if the user has said bye.
+     */
+    public boolean isExit() {
+        return isExit;
     }
 
     /**
@@ -98,17 +152,5 @@ public class Ted {
      */
     public static void main(String[] args) {
         new Ted(DATA_FILE_PATH).run();
-    }
-
-    /**
-     * Runs a reply between the two divider lines, so that every reply is framed
-     * the same way whether it succeeded or reported a problem.
-     *
-     * @param reply the printing to frame.
-     */
-    private void showFramed(Runnable reply) {
-        ui.showLine();
-        reply.run();
-        ui.showLine();
     }
 }
