@@ -1,5 +1,7 @@
 package ted.task;
 
+import java.time.format.DateTimeFormatter;
+
 /**
  * A single task that Ted keeps track of.
  * Bundles a task's description with its done status, so that the two can no
@@ -14,11 +16,15 @@ public abstract class Task {
     /** Separator between fields in the save file. */
     public static final String SAVE_FIELD_SEPARATOR = " | ";
 
+    /** Format used to present dates and times to the user, shared by every kind of task. */
+    protected static final DateTimeFormatter DISPLAY_DATE_TIME_FORMAT =
+            DateTimeFormatter.ofPattern("d MMM uuuu, h:mm a");
+
     /** What the user wants to get done. */
-    protected String description;
+    private final String description;
 
     /** Whether the task has been completed. */
-    protected boolean isDone;
+    private boolean isDone;
 
     /**
      * Creates a task that is not done yet.
@@ -28,6 +34,15 @@ public abstract class Task {
     public Task(String description) {
         this.description = description;
         this.isDone = false;
+    }
+
+    /**
+     * Returns what the user wants to get done.
+     *
+     * @return the task's description.
+     */
+    public String getDescription() {
+        return description;
     }
 
     /**
