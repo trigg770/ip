@@ -1,5 +1,8 @@
 package ted.command;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import ted.TedException;
 
 /**
@@ -70,14 +73,11 @@ public enum CommandType {
      * @throws TedException if no command uses that keyword.
      */
     public static CommandType fromKeyword(String keyword) throws TedException {
-        for (CommandType command : values()) {
-            if (command.keyword.equals(keyword)) {
-                return command;
-            }
-        }
-
-        throw new TedException("I don't recognise \"" + keyword + "\". "
-                + "I understand: " + listKeywords() + ".");
+        return Arrays.stream(values())
+                .filter(command -> command.keyword.equals(keyword))
+                .findFirst()
+                .orElseThrow(() -> new TedException("I don't recognise \"" + keyword + "\". "
+                        + "I understand: " + listKeywords() + "."));
     }
 
     /**
@@ -88,10 +88,8 @@ public enum CommandType {
      * @return the keywords, separated by commas.
      */
     private static String listKeywords() {
-        String[] keywords = new String[values().length];
-        for (int i = 0; i < values().length; i++) {
-            keywords[i] = values()[i].keyword;
-        }
-        return String.join(", ", keywords);
+        return Arrays.stream(values())
+                .map(CommandType::getKeyword)
+                .collect(Collectors.joining(", "));
     }
 }

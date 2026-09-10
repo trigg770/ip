@@ -74,10 +74,9 @@ public class Storage {
                 Files.createDirectories(parentDir);
             }
 
-            List<String> lines = new ArrayList<>();
-            for (Task task : tasks.asList()) {
-                lines.add(task.toSaveFormat());
-            }
+            List<String> lines = tasks.asList().stream()
+                    .map(Task::toSaveFormat)
+                    .toList();
             Files.write(dataFile, lines);
         } catch (IOException e) {
             throw new TedException("Unable to save tasks to " + dataFile
