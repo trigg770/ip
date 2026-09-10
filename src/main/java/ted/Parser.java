@@ -57,6 +57,8 @@ public class Parser {
      * @throws TedException if the command is unknown or its details are unusable.
      */
     public static Command parse(String input) throws TedException {
+        assert !input.isBlank() : "Ted skips blank input, so it never reaches the parser";
+
         // Splitting into at most two parts keeps the command word exact, so that
         // "todos" is not mistaken for "todo", while leaving the rest untouched.
         String[] parts = input.split(" ", 2);

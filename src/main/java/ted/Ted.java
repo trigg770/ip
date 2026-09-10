@@ -117,6 +117,7 @@ public class Ted {
             return ui.flush();
         }
 
+        assert tasks != null : "the constructor sets up a task list even when loading fails";
         try {
             command.execute(tasks, ui, storage);
         } catch (TedException e) {
