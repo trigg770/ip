@@ -28,6 +28,7 @@ public class TaskList {
      * @param tasks the tasks to start with.
      */
     public TaskList(List<Task> tasks) {
+        assert tasks.stream().allMatch(task -> task != null) : "Storage.load() never adds null";
         this.tasks = new ArrayList<>(tasks);
     }
 

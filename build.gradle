@@ -73,4 +73,7 @@ shadowJar {
 
 run {
     standardInput = System.in
+    // Java ignores assert statements unless told otherwise, so turn them on when
+    // running the app from Gradle. Tests already run with assertions on.
+    enableAssertions = true
 }
