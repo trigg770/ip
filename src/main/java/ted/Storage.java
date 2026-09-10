@@ -6,11 +6,13 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import ted.task.Deadline;
 import ted.task.Event;
+import ted.task.Tag;
 import ted.task.Task;
 import ted.task.TaskList;
 import ted.task.Todo;
@@ -23,12 +25,14 @@ import ted.task.Todo;
  * tests point Ted at a scratch file instead of the real one. A relative path
  * such as {@code data/ted.txt} is built with {@link Path}, so it works the same
  * on any computer and any operating system. Each task is one line, formatted
- * by {@link Task#toSaveFormat()}:
+ * by {@link Task#toSaveFormat()}. A tagged task carries its tags as an extra
+ * field straight after the done flag:
  *
  * <pre>
  * T | 0 | borrow book
+ * T | 1 | #fun #school | read book
  * D | 0 | 2019-06-06T18:00 | return book
- * E | 0 | 2019-08-06T14:00 | 2019-08-06T16:00 | project meeting
+ * E | 0 | #cs2103 | 2019-08-06T14:00 | 2019-08-06T16:00 | project meeting
  * </pre>
  */
 public class Storage {
@@ -130,7 +134,8 @@ public class Storage {
     /**
      * Rebuilds a single task from one line of the data file.
      * <p>
-     * The line has the shape {@code <icon> | <done> | <date fields...> | <description>}.
+     * The line has the shape
+     * {@code <icon> | <done> | [<tags> |] <date fields...> | <description>}.
      * Pipes and backslashes inside fields are escaped. The limited split also
      * preserves descriptions containing raw separators from save files created
      * before escaping was introduced.
@@ -141,12 +146,22 @@ public class Storage {
     private static Task parseLine(String line) {
         assert !line.isBlank() : "load() skips blank lines, so they are never parsed";
 
-        // A first, unlimited split just to read the type icon safely: even a
-        // corrupted line must have at least its icon before anything can be parsed.
-        String icon = line.split(FIELD_SEPARATOR_REGEX)[0];
+        // A first, unlimited split to read the type icon and look for a tags
+        // field: even a corrupted line must have at least its icon before
+        // anything can be parsed.
+        String[] rawFields = line.split(FIELD_SEPARATOR_REGEX);
+        String icon = rawFields[0];
         int fieldCount = fieldCountFor(icon);
         if (fieldCount == -1) {
             return null;
+        }
+
+        // A tagged task has one extra field, straight after the done flag. The
+        // field must also hold valid tags, so that an older line whose
+        // description contains a raw separator is still read as it always was.
+        boolean hasTags = rawFields.length > fieldCount && isTagsField(rawFields[2]);
+        if (hasTags) {
+            fieldCount++;
         }
 
         // A limited split keeps legacy raw separators inside the final description.
@@ -160,19 +175,22 @@ public class Storage {
 
         String description = decodeSaveField(fields[fieldCount - 1]);
         boolean isDone = fields[1].equals("1");
+        List<Tag> tags = hasTags ? parseSavedTags(fields[2]) : List.of();
+        // The tags field, when present, pushes the date fields one place along.
+        int firstDateField = hasTags ? 3 : 2;
         try {
             switch (icon) {
                 case "T":
-                    return withDone(new Todo(description), isDone);
+                    return withSavedState(new Todo(description), isDone, tags);
                 case "D":
-                    return withDone(new Deadline(
-                            description, parseSavedDateTime(fields[2])), isDone);
+                    return withSavedState(new Deadline(
+                            description, parseSavedDateTime(fields[firstDateField])), isDone, tags);
                 case "E":
-                    return withDone(new Event(
+                    return withSavedState(new Event(
                             description,
-                            parseSavedDateTime(fields[2]),
-                            parseSavedDateTime(fields[3])),
-                            isDone);
+                            parseSavedDateTime(fields[firstDateField]),
+                            parseSavedDateTime(fields[firstDateField + 1])),
+                            isDone, tags);
                 default:
                     assert false : "unreachable, as fieldCountFor accepts only T, D and E";
                     return null;
@@ -198,8 +216,34 @@ public class Storage {
     }
 
     /**
-     * Number of fields a valid save line has for a given task type:
+     * Returns whether a saved field holds tags: one or more tags separated by
+     * single spaces, e.g. {@code #fun #school}.
+     *
+     * @param field one field from the save file.
+     * @return {@code true} if every word in the field is a valid tag.
+     */
+    private static boolean isTagsField(String field) {
+        // The -1 keeps empty strings from stray spaces, so they fail the check
+        // instead of being silently dropped.
+        return Arrays.stream(field.split(" ", -1)).allMatch(Tag::isValidText);
+    }
+
+    /**
+     * Reads back the tags written by {@link Task#toSaveFormat()}.
+     *
+     * @param field a field that {@link #isTagsField(String)} accepts.
+     * @return the tags, in the order they were saved.
+     */
+    private static List<Tag> parseSavedTags(String field) {
+        return Arrays.stream(field.split(" "))
+                .map(Tag::fromText)
+                .toList();
+    }
+
+    /**
+     * Number of fields a valid untagged save line has for a given task type:
      * the icon and the done flag, plus the date fields, plus the description.
+     * A tagged line has one more, for its tags.
      *
      * @return 3 for a todo, 4 for a deadline, 5 for an event, or -1 if the icon is unknown.
      */
@@ -239,13 +283,14 @@ public class Storage {
     }
 
     /**
-     * Applies the saved done flag to a freshly created task, which always
-     * starts out undone.
+     * Applies the saved done flag and tags to a freshly created task, which
+     * always starts out undone and untagged.
      */
-    private static Task withDone(Task task, boolean isDone) {
+    private static Task withSavedState(Task task, boolean isDone, List<Tag> tags) {
         if (isDone) {
             task.markAsDone();
         }
+        task.addTags(tags);
         return task;
     }
 }

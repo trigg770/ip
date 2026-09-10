@@ -15,6 +15,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import ted.task.Deadline;
 import ted.task.Event;
+import ted.task.Tag;
 import ted.task.Task;
 import ted.task.TaskList;
 import ted.task.Todo;
@@ -150,5 +151,74 @@ public class StorageTest {
         List<Task> loaded = new Storage(dataFile.toString()).load();
         assertEquals(1, loaded.size());
         assertEquals("D | 1 | 2019-12-02T18:00 | return book", loaded.get(0).toSaveFormat());
+    }
+
+    @Test
+    public void saveThenLoad_taggedTasks_roundTripsUnchanged(@TempDir Path tempDir) throws TedException {
+        Storage storage = new Storage(tempDir.resolve("ted.txt").toString());
+        Todo todo = new Todo("read book");
+        todo.addTags(List.of(new Tag("fun"), new Tag("school")));
+        todo.markAsDone();
+        Deadline deadline = new Deadline("return book", SECOND_OF_DECEMBER_6PM);
+        deadline.addTags(List.of(new Tag("library")));
+        Event event = new Event("meeting", SECOND_OF_DECEMBER_4PM, SECOND_OF_DECEMBER_6PM);
+        event.addTags(List.of(new Tag("cs2103")));
+        TaskList saved = new TaskList(List.of(todo, deadline, event));
+
+        storage.save(saved);
+        List<Task> loaded = storage.load();
+
+        assertEquals(3, loaded.size());
+        assertEquals(0, storage.getSkippedLineCount());
+        assertInstanceOf(Deadline.class, loaded.get(1));
+        assertInstanceOf(Event.class, loaded.get(2));
+        // The save format includes the tags, so matching it proves they came back.
+        for (int i = 0; i < loaded.size(); i++) {
+            assertEquals(saved.asList().get(i).toSaveFormat(), loaded.get(i).toSaveFormat());
+        }
+    }
+
+    @Test
+    public void load_linesWrittenBeforeTags_readAsBefore(@TempDir Path tempDir)
+            throws TedException, IOException {
+        // None of these lines has a tags field, so each must load exactly as it
+        // did before tags existed, even where the description looks like a tag.
+        Path dataFile = tempDir.resolve("ted.txt");
+        Files.write(dataFile, List.of(
+                "T | 0 | #fun",
+                "T | 0 | rock | roll",
+                "D | 1 | 2019-12-02T18:00 | return book"));
+
+        Storage storage = new Storage(dataFile.toString());
+        List<Task> loaded = storage.load();
+
+        assertEquals(3, loaded.size());
+        assertEquals(0, storage.getSkippedLineCount());
+        assertEquals("T | 0 | #fun", loaded.get(0).toSaveFormat());
+        assertEquals("[T][ ] rock | roll", loaded.get(1).toString());
+        assertEquals("D | 1 | 2019-12-02T18:00 | return book", loaded.get(2).toSaveFormat());
+    }
+
+    @Test
+    public void load_tagsInCapitalsOrRepeated_loadedOnceInLowerCase(@TempDir Path tempDir)
+            throws TedException, IOException {
+        // A hand-edited file need not match what Ted writes itself.
+        Path dataFile = tempDir.resolve("ted.txt");
+        Files.writeString(dataFile, "T | 0 | #Fun #fun #School | read book\n");
+
+        List<Task> loaded = new Storage(dataFile.toString()).load();
+        assertEquals("T | 0 | #fun #school | read book", loaded.get(0).toSaveFormat());
+    }
+
+    @Test
+    public void load_fieldThatIsNotValidTags_keptInDescription(@TempDir Path tempDir)
+            throws TedException, IOException {
+        // "#to-do" is not a tag, so the line is read like an older line whose
+        // description holds an unescaped separator, rather than being skipped.
+        Path dataFile = tempDir.resolve("ted.txt");
+        Files.writeString(dataFile, "T | 0 | #to-do | read book\n");
+
+        List<Task> loaded = new Storage(dataFile.toString()).load();
+        assertEquals("[T][ ] #to-do | read book", loaded.get(0).toString());
     }
 }

@@ -1,6 +1,10 @@
 package ted.task;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A single task that Ted keeps track of.
@@ -25,6 +29,12 @@ public abstract class Task {
 
     /** Whether the task has been completed. */
     private boolean isDone;
+
+    /**
+     * Labels the user has attached to this task, in the order they were added.
+     * A set, so that attaching a tag the task already has changes nothing.
+     */
+    private final Set<Tag> tags = new LinkedHashSet<>();
 
     /**
      * Creates a task that is not done yet.
@@ -66,11 +76,40 @@ public abstract class Task {
     }
 
     /**
+     * Attaches tags to this task. Tags it already has are left where they are,
+     * so no tag is ever shown twice.
+     *
+     * @param newTags the tags to attach.
+     */
+    public void addTags(Collection<Tag> newTags) {
+        tags.addAll(newTags);
+    }
+
+    /**
+     * Detaches tags from this task. Tags it does not have are ignored.
+     *
+     * @param oldTags the tags to detach.
+     */
+    public void removeTags(Collection<Tag> oldTags) {
+        tags.removeAll(oldTags);
+    }
+
+    /**
+     * Returns whether this task has the given tag.
+     *
+     * @param tag the tag to look for.
+     * @return {@code true} if the tag is attached to this task.
+     */
+    public boolean hasTag(Tag tag) {
+        return tags.contains(tag);
+    }
+
+    /**
      * Converts this task into a single line of the save file format.
      * <p>
      * The line carries everything needed to rebuild this task: the type icon
-     * ({@link #getTypeIcon()}), the done flag, the description, and any
-     * type-specific detail. Todo uses the default implementation; subclasses
+     * ({@link #getTypeIcon()}), the done flag, any tags, the description, and
+     * any type-specific detail. Todo uses the default implementation; subclasses
      * override it to pass their extra fields to {@link #toSaveLine(String...)}.
      *
      * @return one line of the save file, using {@code " | "} as the separator.
@@ -87,6 +126,10 @@ public abstract class Task {
      * deadline one, an event two -- so they are taken as varargs. Each caller
      * then names its own fields in order and this method alone deals with
      * escaping them and placing the separators.
+     * <p>
+     * Tags, if there are any, form one field straight after the done flag, e.g.
+     * {@code T | 0 | #fun #school | read book}. A task without tags leaves the
+     * field out, so its line is exactly what Ted wrote before tags existed.
      *
      * @param extraFields type-specific fields, in the order they are saved,
      *                    stored between the done flag and the description.
@@ -96,6 +139,10 @@ public abstract class Task {
         StringBuilder line = new StringBuilder();
         line.append(getTypeIcon()).append(SAVE_FIELD_SEPARATOR)
                 .append(isDone ? "1" : "0").append(SAVE_FIELD_SEPARATOR);
+        if (!tags.isEmpty()) {
+            // Tags need no escaping: after the # they are only letters and digits.
+            line.append(formatTags()).append(SAVE_FIELD_SEPARATOR);
+        }
         for (String field : extraFields) {
             line.append(encodeSaveField(field)).append(SAVE_FIELD_SEPARATOR);
         }
@@ -123,13 +170,24 @@ public abstract class Task {
     public abstract String getTypeIcon();
 
     /**
-     * Returns this task as it should appear to the user, e.g. {@code [T][X] read book}.
+     * Returns this task as it should appear to the user, e.g. {@code [T][X] read book #fun}.
      * Overriding {@code toString} rather than writing a separate format method
      * lets a task be printed directly wherever it is needed. Subclasses that
-     * carry extra detail append it to this result.
+     * carry extra detail append it to this result, so a deadline's due date
+     * comes after its tags.
      */
     @Override
     public String toString() {
-        return "[" + getTypeIcon() + "][" + getStatusIcon() + "] " + description;
+        String shown = "[" + getTypeIcon() + "][" + getStatusIcon() + "] " + description;
+        return tags.isEmpty() ? shown : shown + " " + formatTags();
+    }
+
+    /**
+     * Returns the tags the way they are both shown and saved, e.g. {@code #fun #school}.
+     */
+    private String formatTags() {
+        return tags.stream()
+                .map(Tag::toString)
+                .collect(Collectors.joining(" "));
     }
 }

@@ -100,6 +100,21 @@ public class TaskList {
     }
 
     /**
+     * Returns the tasks that have the given tag.
+     * <p>
+     * Only the exact tag counts, so {@code #fun} does not match a task tagged
+     * {@code #funny}: a tag is a label the user chose, not text to search inside.
+     *
+     * @param tag the tag to look for.
+     * @return the tasks with that tag, in the order they appear in this list.
+     */
+    public TaskList findByTag(Tag tag) {
+        return new TaskList(tasks.stream()
+                .filter(task -> task.hasTag(tag))
+                .toList());
+    }
+
+    /**
      * Returns the tasks as a plain list, for code that only needs to read them.
      *
      * @return an unmodifiable copy of the tasks, in order, which later

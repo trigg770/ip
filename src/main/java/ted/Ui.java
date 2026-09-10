@@ -164,6 +164,17 @@ public class Ui {
     }
 
     /**
+     * Confirms a change to a task's tags.
+     *
+     * @param task     the task whose tags changed.
+     * @param isAdding {@code true} if tags were attached, {@code false} if detached.
+     */
+    public void showTagged(Task task, boolean isAdding) {
+        show(isAdding ? "OK, I've tagged this task:" : "OK, I've untagged this task:",
+                "  " + task);
+    }
+
+    /**
      * Shows every stored task as a numbered list, starting from 1.
      *
      * @param tasks the tasks to show.

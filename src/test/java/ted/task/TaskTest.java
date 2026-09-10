@@ -1,9 +1,11 @@
 package ted.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -95,5 +97,61 @@ public class TaskTest {
     @Test
     public void toSaveFormat_descriptionContainingBackslash_escapesIt() {
         assertEquals("T | 0 | back\\\\slash", new Todo("back\\slash").toSaveFormat());
+    }
+
+    @Test
+    public void toString_taggedTodo_showsTagsAfterDescription() {
+        Todo todo = new Todo("read book");
+        todo.addTags(List.of(new Tag("fun"), new Tag("school")));
+        assertEquals("[T][ ] read book #fun #school", todo.toString());
+    }
+
+    @Test
+    public void toString_taggedDeadline_showsTagsBeforeDate() {
+        Deadline deadline = new Deadline("return book", SECOND_OF_DECEMBER_6PM);
+        deadline.addTags(List.of(new Tag("library")));
+        assertTrue(deadline.toString().startsWith("[D][ ] return book #library (by: "));
+    }
+
+    @Test
+    public void addTags_tagAlreadyPresent_notRepeated() {
+        Todo todo = new Todo("read book");
+        todo.addTags(List.of(new Tag("fun")));
+        todo.addTags(List.of(new Tag("FUN"), new Tag("school")));
+        // The repeated tag keeps its original place rather than moving to the end.
+        assertEquals("[T][ ] read book #fun #school", todo.toString());
+    }
+
+    @Test
+    public void removeTags_someOfTheTags_removesOnlyThose() {
+        Todo todo = new Todo("read book");
+        todo.addTags(List.of(new Tag("fun"), new Tag("school")));
+        todo.removeTags(List.of(new Tag("school")));
+        assertTrue(todo.hasTag(new Tag("fun")));
+        assertFalse(todo.hasTag(new Tag("school")));
+    }
+
+    @Test
+    public void toSaveFormat_taggedTodo_writesTagsAfterDoneFlag() {
+        Todo todo = new Todo("read book");
+        todo.addTags(List.of(new Tag("fun"), new Tag("school")));
+        assertEquals("T | 0 | #fun #school | read book", todo.toSaveFormat());
+    }
+
+    @Test
+    public void toSaveFormat_taggedEvent_writesTagsBeforeDates() {
+        Event event = new Event("meeting", SECOND_OF_DECEMBER_4PM, SECOND_OF_DECEMBER_6PM);
+        event.addTags(List.of(new Tag("cs2103")));
+        assertEquals("E | 0 | #cs2103 | 2019-12-02T16:00 | 2019-12-02T18:00 | meeting",
+                event.toSaveFormat());
+    }
+
+    @Test
+    public void toSaveFormat_lastTagRemoved_writesUntaggedLine() {
+        // Without tags the line must be exactly what Ted wrote before tags existed.
+        Todo todo = new Todo("read book");
+        todo.addTags(List.of(new Tag("fun")));
+        todo.removeTags(List.of(new Tag("fun")));
+        assertEquals("T | 0 | read book", todo.toSaveFormat());
     }
 }
