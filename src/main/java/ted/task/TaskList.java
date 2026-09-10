@@ -94,13 +94,9 @@ public class TaskList {
      */
     public TaskList find(String keyword) {
         String lowerCaseKeyword = keyword.toLowerCase();
-        TaskList matches = new TaskList();
-        for (Task task : tasks) {
-            if (task.getDescription().toLowerCase().contains(lowerCaseKeyword)) {
-                matches.add(task);
-            }
-        }
-        return matches;
+        return new TaskList(tasks.stream()
+                .filter(task -> task.getDescription().toLowerCase().contains(lowerCaseKeyword))
+                .toList());
     }
 
     /**
