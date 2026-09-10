@@ -144,6 +144,8 @@ public class Storage {
      * @return the rebuilt task, or {@code null} if the line is not in the expected format.
      */
     private static Task parseLine(String line) {
+        assert !line.isBlank() : "load() skips blank lines, so they are never parsed";
+
         // A first, unlimited split to read the type icon and look for a tags
         // field: even a corrupted line must have at least its icon before
         // anything can be parsed.
@@ -190,7 +192,7 @@ public class Storage {
                             parseSavedDateTime(fields[firstDateField + 1])),
                             isDone, tags);
                 default:
-                    // Unreachable: fieldCountFor accepts only T, D and E.
+                    assert false : "unreachable, as fieldCountFor accepts only T, D and E";
                     return null;
             }
         } catch (DateTimeParseException e) {

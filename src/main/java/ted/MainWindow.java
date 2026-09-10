@@ -59,6 +59,7 @@ public class MainWindow extends AnchorPane {
      */
     @FXML
     private void handleUserInput() {
+        assert ted != null : "Main calls setTed before showing the window, so input always has a Ted";
         String input = userInput.getText();
         String response = ted.getResponse(input);
         if (response.isEmpty()) {
