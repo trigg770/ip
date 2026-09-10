@@ -17,6 +17,7 @@ import ted.command.ExitCommand;
 import ted.command.FindCommand;
 import ted.command.ListCommand;
 import ted.command.MarkCommand;
+import ted.command.TagCommand;
 import ted.task.Task;
 import ted.task.TaskList;
 import ted.task.Todo;
@@ -199,6 +200,70 @@ public class ParserTest {
         TaskList tasks = new TaskList(List.of(new Todo("only task")));
         Parser.parse("delete 1").execute(tasks, new SilentUi(), new NoOpStorage());
         assertEquals(0, tasks.size());
+    }
+
+    @Test
+    public void parse_tagOrUntagWithTags_returnsTagCommand() throws TedException {
+        assertInstanceOf(TagCommand.class, Parser.parse("tag 1 #fun"));
+        assertInstanceOf(TagCommand.class, Parser.parse("untag 1 #fun #school"));
+    }
+
+    @Test
+    public void parse_tagThenExecute_tagsTheTaskInLowerCase() throws TedException {
+        TaskList tasks = new TaskList(List.of(new Todo("read book")));
+        // Extra spaces between the tags, and a repeated tag, make no difference.
+        Parser.parse("tag 1 #Fun   #school #FUN").execute(tasks, new SilentUi(), new NoOpStorage());
+        assertEquals("[T][ ] read book #fun #school", tasks.get(0).toString());
+    }
+
+    @Test
+    public void parse_untagThenExecute_removesOnlyThoseTags() throws TedException {
+        TaskList tasks = new TaskList(List.of(new Todo("read book")));
+        Parser.parse("tag 1 #fun #school").execute(tasks, new SilentUi(), new NoOpStorage());
+        Parser.parse("untag 1 #school").execute(tasks, new SilentUi(), new NoOpStorage());
+        assertEquals("[T][ ] read book #fun", tasks.get(0).toString());
+    }
+
+    @Test
+    public void parse_tagWithoutTaskOrTags_exceptionThrown() {
+        TedException noArgument = assertThrows(TedException.class, () -> Parser.parse("tag"));
+        assertTrue(noArgument.getMessage().contains("tag 2 #fun"));
+        TedException noTags = assertThrows(TedException.class, () -> Parser.parse("untag 2"));
+        assertTrue(noTags.getMessage().contains("untag 2 #fun"));
+    }
+
+    @Test
+    public void parse_tagWithBadTaskNumber_exceptionThrown() {
+        TedException e = assertThrows(TedException.class, () -> Parser.parse("tag two #fun"));
+        assertTrue(e.getMessage().contains("\"two\" is not a task number"));
+    }
+
+    @Test
+    public void parse_tagWithInvalidTag_exceptionThrown() {
+        TedException e = assertThrows(TedException.class, () -> Parser.parse("tag 2 fun"));
+        assertTrue(e.getMessage().contains("\"fun\" is not a tag"));
+        assertThrows(TedException.class, () -> Parser.parse("tag 2 #"));
+        assertThrows(TedException.class, () -> Parser.parse("tag 2 #to-do"));
+    }
+
+    @Test
+    public void parse_untagTagTheTaskLacks_exceptionThrownAndTaskUnchanged() throws TedException {
+        TaskList tasks = new TaskList(List.of(new Todo("read book")));
+        Parser.parse("tag 1 #fun").execute(tasks, new SilentUi(), new NoOpStorage());
+
+        Command untag = Parser.parse("untag 1 #fun #nope");
+        Storage storage = new NoOpStorage();
+        TedException e = assertThrows(TedException.class, () -> untag.execute(tasks, new SilentUi(), storage));
+        assertTrue(e.getMessage().contains("doesn't have the tag #nope"));
+        // All or nothing: #fun must survive the rejected untag.
+        assertEquals("[T][ ] read book #fun", tasks.get(0).toString());
+    }
+
+    @Test
+    public void parse_tagTaskNumberPastEnd_exceptionThrown() throws TedException {
+        TaskList tasks = new TaskList(List.of(new Todo("read book")));
+        Command tag = Parser.parse("tag 9 #fun");
+        assertThrows(TedException.class, () -> tag.execute(tasks, new SilentUi(), new NoOpStorage()));
     }
 
     /** A Ui that says nothing, so tests do not print over the test report. */

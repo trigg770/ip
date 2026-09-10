@@ -37,6 +37,12 @@ public enum CommandType {
     /** Shows only the tasks whose description contains a keyword. */
     FIND("find"),
 
+    /** Attaches tags to a task. */
+    TAG("tag"),
+
+    /** Detaches tags from a task. */
+    UNTAG("untag"),
+
     /** Ends the conversation. */
     BYE("bye");
 

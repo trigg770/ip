@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
+import java.util.ArrayList;
+import java.util.List;
 
 import ted.command.AddCommand;
 import ted.command.Command;
@@ -13,8 +15,10 @@ import ted.command.ExitCommand;
 import ted.command.FindCommand;
 import ted.command.ListCommand;
 import ted.command.MarkCommand;
+import ted.command.TagCommand;
 import ted.task.Deadline;
 import ted.task.Event;
+import ted.task.Tag;
 import ted.task.Todo;
 
 /**
@@ -22,9 +26,9 @@ import ted.task.Todo;
  * <p>
  * All of the fiddly work of reading user input lives here: splitting off the
  * command word, finding {@code /by}, {@code /from} and {@code /to}, and
- * reading dates. Because a command is only built once its details make sense,
- * the command classes themselves are free of input checking, and this class
- * can be tested without a keyboard or a save file.
+ * reading dates and tags. Because a command is only built once its details
+ * make sense, the command classes themselves are free of input checking, and
+ * this class can be tested without a keyboard or a save file.
  */
 public class Parser {
     /**
@@ -69,6 +73,8 @@ public class Parser {
             case UNMARK -> new MarkCommand(parseTaskIndex(argument, CommandType.UNMARK), false);
             case DELETE -> new DeleteCommand(parseTaskIndex(argument, CommandType.DELETE));
             case FIND -> new FindCommand(parseKeyword(argument));
+            case TAG -> parseTagCommand(argument, CommandType.TAG, true);
+            case UNTAG -> parseTagCommand(argument, CommandType.UNTAG, false);
             case TODO -> new AddCommand(parseTodo(argument));
             case DEADLINE -> new AddCommand(parseDeadline(argument));
             case EVENT -> new AddCommand(parseEvent(argument));
@@ -164,6 +170,37 @@ public class Parser {
     }
 
     /**
+     * Reads a tag or untag command, from an argument of the form
+     * {@code <task number> #<tag> [#<tag>...]}.
+     *
+     * @param argument    everything the user typed after the command word.
+     * @param commandType {@link CommandType#TAG} or {@link CommandType#UNTAG}, used in error messages.
+     * @param isAdding    {@code true} to attach the tags, {@code false} to detach them.
+     * @return the command that changes the task's tags.
+     * @throws TedException if the task number or the tags are missing or unreadable.
+     */
+    private static TagCommand parseTagCommand(String argument, CommandType commandType, boolean isAdding)
+            throws TedException {
+        String example = "for example: " + commandType.getKeyword() + " 2 #fun";
+        requireNotBlank(argument, "Which task, and which tags? " + example);
+
+        // Any run of spaces separates the words, so padding between tags does not matter.
+        String[] words = argument.split("\\s+");
+        int index = parseTaskIndex(words[0], commandType);
+        if (words.length == 1) {
+            throw new TedException("Which tags? Start each one with #, " + example);
+        }
+
+        // A loop rather than a stream, because parseTag throws a checked
+        // exception, which a lambda cannot pass on.
+        List<Tag> tags = new ArrayList<>();
+        for (int i = 1; i < words.length; i++) {
+            tags.add(parseTag(words[i], example));
+        }
+        return new TagCommand(index, tags, isAdding);
+    }
+
+    /**
      * Converts a task number typed by the user into an index into the task list.
      * Whether the number points at a real task is checked by {@link ted.task.TaskList}
      * when the command runs, since only then is the list at hand.
@@ -203,6 +240,22 @@ public class Parser {
             throw new TedException("I can't read \"" + text + "\" as a date and time. "
                     + "Please use d/M/yyyy HHmm, " + example);
         }
+    }
+
+    /**
+     * Turns one tag typed by the user, e.g. {@code #Fun}, into a {@link Tag}.
+     *
+     * @param text    one word as typed.
+     * @param example wording showing how the command is used, used in the error message.
+     * @return the tag the word stands for.
+     * @throws TedException if the word is not {@code #} followed by letters and digits.
+     */
+    private static Tag parseTag(String text, String example) throws TedException {
+        if (!Tag.isValidText(text)) {
+            throw new TedException("\"" + text + "\" is not a tag. "
+                    + "A tag is # followed by letters and digits, " + example);
+        }
+        return Tag.fromText(text);
     }
 
     /**
