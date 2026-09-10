@@ -34,8 +34,9 @@ public class DialogBox extends HBox {
             fxmlLoader.setRoot(this);
             fxmlLoader.load();
         } catch (IOException e) {
-            // A message that cannot be drawn is not worth stopping the app for.
-            e.printStackTrace();
+            // The FXML ships inside the JAR, so failing to load it means a broken
+            // build. Carrying on would only fail later with a NullPointerException.
+            throw new IllegalStateException("Cannot load DialogBox.fxml", e);
         }
 
         dialog.setText(text);

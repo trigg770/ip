@@ -175,7 +175,7 @@ public class Ui {
     }
 
     /**
-     * Prints every stored task as a numbered list, starting from 1.
+     * Shows every stored task as a numbered list, starting from 1.
      *
      * @param tasks the tasks to show.
      */
@@ -184,7 +184,7 @@ public class Ui {
     }
 
     /**
-     * Prints the tasks that matched a search, as a numbered list.
+     * Shows the tasks that matched a search, as a numbered list.
      * The numbers count the matches, not the positions in the full list, so
      * they are not the numbers to pass to mark or delete.
      *
@@ -197,7 +197,7 @@ public class Ui {
     }
 
     /**
-     * Prints tasks as a numbered list, starting from 1.
+     * Adds tasks to the reply as a numbered list, starting from 1.
      *
      * @param tasks        the tasks to show.
      * @param header       line introducing the list.

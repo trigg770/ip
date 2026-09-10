@@ -156,6 +156,23 @@ public class ParserTest {
     }
 
     @Test
+    public void parse_eventDescriptionContainingSlashTo_descriptionKept() throws TedException {
+        // "w/tom" contains "/to", which once was mistaken for the end-time separator.
+        TaskList tasks = new TaskList();
+        Parser.parse("event lunch w/tom /from 1/1/2026 1200 /to 1/1/2026 1300")
+                .execute(tasks, new SilentUi(), new NoOpStorage());
+        assertEquals("lunch w/tom", tasks.get(0).getDescription());
+    }
+
+    @Test
+    public void parse_deadlineDescriptionContainingSlashBy_descriptionKept() throws TedException {
+        TaskList tasks = new TaskList();
+        Parser.parse("deadline read w/bytes /by 1/1/2026 1200")
+                .execute(tasks, new SilentUi(), new NoOpStorage());
+        assertEquals("read w/bytes", tasks.get(0).getDescription());
+    }
+
+    @Test
     public void parse_eventEndingBeforeStart_exceptionThrown() {
         assertThrows(TedException.class, () -> Parser.parse("event meeting /from 2/12/2019 1600 /to 2/12/2019 1400"));
     }

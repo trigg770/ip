@@ -6,6 +6,8 @@ import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import ted.command.AddCommand;
 import ted.command.Command;
@@ -137,7 +139,7 @@ public class Parser {
         String example = "for example: deadline return book /by 2/12/2019 1800";
         requireNotBlank(argument, "A deadline needs a description and a due time, " + example);
 
-        int separator = argument.indexOf(OPTION_BY);
+        int separator = findOption(argument, OPTION_BY);
         if (separator == -1) {
             throw new TedException("I need to know when this is due. Use /by, " + example);
         }
@@ -162,8 +164,8 @@ public class Parser {
         String example = "for example: event project meeting /from 2/12/2019 1400 /to 2/12/2019 1600";
         requireNotBlank(argument, "An event needs a description, a start and an end, " + example);
 
-        int fromSeparator = argument.indexOf(OPTION_FROM);
-        int toSeparator = argument.indexOf(OPTION_TO);
+        int fromSeparator = findOption(argument, OPTION_FROM);
+        int toSeparator = findOption(argument, OPTION_TO);
         if (fromSeparator == -1 || toSeparator == -1) {
             throw new TedException("An event needs both /from and /to, " + example);
         }
@@ -275,6 +277,22 @@ public class Parser {
                     + "A tag is # followed by letters and digits, " + example);
         }
         return Tag.fromText(text);
+    }
+
+    /**
+     * Returns where an option such as {@code /to} starts in the argument.
+     * Only a standalone word counts, so that the {@code /to} inside a
+     * description like "lunch w/tom" is not mistaken for the separator.
+     *
+     * @param argument everything the user typed after the command word.
+     * @param option   the option to look for, e.g. {@code /by}.
+     * @return index of the option's first standalone use, or -1 if there is none.
+     */
+    private static int findOption(String argument, String option) {
+        // The lookarounds require whitespace or the edge of the text on both
+        // sides, without making that whitespace part of the match.
+        Matcher matcher = Pattern.compile("(?<!\\S)" + Pattern.quote(option) + "(?!\\S)").matcher(argument);
+        return matcher.find() ? matcher.start() : -1;
     }
 
     /**
