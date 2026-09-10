@@ -13,8 +13,8 @@ public class ExitCommand extends Command {
     /** Does nothing: leaving needs no work beyond stopping the loop. */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) {
-        // Nothing to do: the goodbye is shown by Ted once the loop has stopped,
-        // so that it is not framed like an ordinary reply.
+        // Nothing to do: Ted shows the goodbye itself when it sees isExit(),
+        // so that the goodbye replaces an ordinary reply.
     }
 
     /**

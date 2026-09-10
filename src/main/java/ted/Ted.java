@@ -30,6 +30,13 @@ public class Ted {
     /** The tasks entered so far. */
     private TaskList tasks;
 
+    /**
+     * Why the save file could not be read, or {@code null} if it loaded.
+     * Kept until the greeting so that the warning follows the welcome banner
+     * instead of appearing above it.
+     */
+    private String loadErrorMessage;
+
     /** Whether the last handled command asked Ted to stop. */
     private boolean isExit = false;
 
@@ -55,20 +62,16 @@ public class Ted {
             // The list must be complete before the user is greeted, so that every
             // command that follows can rely on it.
             tasks = new TaskList(storage.load());
-            if (storage.getSkippedLineCount() > 0) {
-                ui.showSkippedLines(storage.getSkippedLineCount());
-            }
         } catch (TedException e) {
             // An unreadable save file is not worth refusing to start over.
-            ui.showLoadingError(e.getMessage());
+            loadErrorMessage = e.getMessage();
             tasks = new TaskList();
         }
     }
 
     /** Greets the user, then handles commands until the conversation ends. */
     public void run() {
-        ui.showWelcome();
-        ui.printReply(ui.flush());
+        ui.printReply(getGreeting());
 
         // hasNextCommand() also stops the loop when the input stream ends,
         // e.g. on Ctrl-D or at the end of a piped file.
@@ -95,14 +98,17 @@ public class Ted {
      * @return Ted's reply, or an empty string if there was nothing to reply to.
      */
     public String getResponse(String input) {
-        if (input.isBlank()) {
+        // The GUI passes its text field on as typed, so stray spaces are removed
+        // here, where both front ends meet, rather than in each of them.
+        String trimmedInput = input.strip();
+        if (trimmedInput.isEmpty()) {
             // A stray blank line is not worth a reply.
             return "";
         }
 
         Command command;
         try {
-            command = Parser.parse(input);
+            command = Parser.parse(trimmedInput);
         } catch (TedException e) {
             // Every problem Ted can recognise is recoverable, so the message is
             // shown and the conversation continues with the next command.
@@ -133,6 +139,12 @@ public class Ted {
      */
     public String getGreeting() {
         ui.showWelcome();
+        if (loadErrorMessage != null) {
+            ui.showLoadingError(loadErrorMessage);
+        }
+        if (storage.getSkippedLineCount() > 0) {
+            ui.showSkippedLines(storage.getSkippedLineCount());
+        }
         return ui.flush();
     }
 
