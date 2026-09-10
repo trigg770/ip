@@ -1,6 +1,6 @@
-# Ted project template
+# Ted
 
-This is a project template for a greenfield Java project. Given below are instructions on how to use it.
+Ted is a chatbot that keeps track of your todos, deadlines and events. Given below are instructions on how to set it up.
 
 ## Setting up in Intellij
 
@@ -13,7 +13,7 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    1. If there are any further prompts, accept the defaults.
 1. Configure the project to use **JDK 25** (not other versions) as explained in [here](https://www.jetbrains.com/help/idea/sdk.html#set-up-jdk).<br>
    In the same dialog, set the **Project language level** field to the `SDK default` option.
-1. After that, locate the `src/main/java/Ted.java` file, right-click it, and choose `Run Ted.main()` (if the code editor is showing compile errors, try restarting the IDE). If the setup is correct, you should see something like the below as the output:
+1. After that, locate the `src/main/java/ted/Ted.java` file, right-click it, and choose `Run Ted.main()` (if the code editor is showing compile errors, try restarting the IDE). If the setup is correct, you should see something like the below as the output:
    ```
     _____ _____ ____  
    |_   _| ____|  _ \ 
@@ -21,5 +21,6 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
      | | | |___| |_| |
      |_| |_____|____/ 
    ```
+1. To open Ted's window instead, run `src/main/java/ted/Launcher.java` the same way, or run `./gradlew run` from the project folder.
 
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.
