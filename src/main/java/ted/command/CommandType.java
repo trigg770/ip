@@ -34,7 +34,7 @@ public enum CommandType {
     /** Removes a task from the list. */
     DELETE("delete"),
 
-    /** Shows only the tasks whose description contains a keyword. */
+    /** Shows only the tasks whose description contains a keyword, or that have a tag. */
     FIND("find"),
 
     /** Attaches tags to a task. */

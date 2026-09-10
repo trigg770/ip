@@ -266,6 +266,32 @@ public class ParserTest {
         assertThrows(TedException.class, () -> tag.execute(tasks, new SilentUi(), new NoOpStorage()));
     }
 
+    @Test
+    public void parse_findWithTag_showsOnlyTasksWithThatTag() throws TedException {
+        TaskList tasks = new TaskList(List.of(new Todo("read book"), new Todo("fun fair")));
+        Parser.parse("tag 1 #fun").execute(tasks, new SilentUi(), new NoOpStorage());
+
+        Ui ui = new SilentUi();
+        Parser.parse("find #FUN").execute(tasks, ui, new NoOpStorage());
+        String reply = ui.flush();
+        assertTrue(reply.contains("read book #fun"));
+        // "fun fair" contains the text "fun" but has no #fun tag.
+        assertFalse(reply.contains("fun fair"));
+    }
+
+    @Test
+    public void parse_findWithInvalidTag_exceptionThrown() {
+        TedException e = assertThrows(TedException.class, () -> Parser.parse("find #fun #school"));
+        assertTrue(e.getMessage().contains("find #fun"));
+        assertThrows(TedException.class, () -> Parser.parse("find #"));
+    }
+
+    @Test
+    public void parse_findWithHashLaterInKeyword_returnsFindCommand() throws TedException {
+        // Only a keyword that starts with # is a tag search.
+        assertInstanceOf(FindCommand.class, Parser.parse("find book #fun"));
+    }
+
     /** A Ui that says nothing, so tests do not print over the test report. */
     private static class SilentUi extends Ui {
         @Override

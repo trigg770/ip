@@ -12,6 +12,7 @@ import ted.command.Command;
 import ted.command.CommandType;
 import ted.command.DeleteCommand;
 import ted.command.ExitCommand;
+import ted.command.FindByTagCommand;
 import ted.command.FindCommand;
 import ted.command.ListCommand;
 import ted.command.MarkCommand;
@@ -72,7 +73,7 @@ public class Parser {
             case MARK -> new MarkCommand(parseTaskIndex(argument, CommandType.MARK), true);
             case UNMARK -> new MarkCommand(parseTaskIndex(argument, CommandType.UNMARK), false);
             case DELETE -> new DeleteCommand(parseTaskIndex(argument, CommandType.DELETE));
-            case FIND -> new FindCommand(parseKeyword(argument));
+            case FIND -> parseFind(argument);
             case TAG -> parseTagCommand(argument, CommandType.TAG, true);
             case UNTAG -> parseTagCommand(argument, CommandType.UNTAG, false);
             case TODO -> new AddCommand(parseTodo(argument));
@@ -80,6 +81,24 @@ public class Parser {
             case EVENT -> new AddCommand(parseEvent(argument));
             case BYE -> new ExitCommand();
         };
+    }
+
+    /**
+     * Reads a search. A keyword starting with {@code #} is a tag, which matches
+     * only the tasks that have exactly that tag; any other keyword is text to
+     * find inside descriptions.
+     *
+     * @param argument everything the user typed after the command word.
+     * @return the command that shows the matching tasks.
+     * @throws TedException if no keyword was given, or it starts with {@code #}
+     *                      but is not a valid tag.
+     */
+    private static Command parseFind(String argument) throws TedException {
+        String keyword = parseKeyword(argument);
+        if (keyword.startsWith(Tag.PREFIX)) {
+            return new FindByTagCommand(parseTag(keyword, "for example: find #fun"));
+        }
+        return new FindCommand(keyword);
     }
 
     /**

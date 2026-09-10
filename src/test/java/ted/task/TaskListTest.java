@@ -151,4 +151,26 @@ public class TaskListTest {
         List<Task> view = tasks.asList();
         assertThrows(UnsupportedOperationException.class, () -> view.add(new Todo("sneaky")));
     }
+
+    @Test
+    public void findByTag_similarTags_returnsOnlyExactMatches() throws TedException {
+        Todo fun = new Todo("read book");
+        fun.addTags(List.of(new Tag("fun")));
+        Todo funny = new Todo("watch film");
+        funny.addTags(List.of(new Tag("funny")));
+        TaskList tasks = new TaskList(List.of(fun, funny, new Todo("buy milk")));
+
+        TaskList matches = tasks.findByTag(new Tag("fun"));
+        // #funny starts with "fun" but is a different tag, so it must not match.
+        assertEquals(1, matches.size());
+        assertSame(fun, matches.get(0));
+    }
+
+    @Test
+    public void find_keywordOnlyInATag_noMatch() {
+        // find searches descriptions, and a tag is not part of the description.
+        Todo todo = new Todo("read book");
+        todo.addTags(List.of(new Tag("fun")));
+        assertTrue(new TaskList(List.of(todo)).find("fun").isEmpty());
+    }
 }
