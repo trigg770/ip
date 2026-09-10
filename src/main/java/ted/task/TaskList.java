@@ -95,7 +95,7 @@ public class TaskList {
         String lowerCaseKeyword = keyword.toLowerCase();
         TaskList matches = new TaskList();
         for (Task task : tasks) {
-            if (task.description.toLowerCase().contains(lowerCaseKeyword)) {
+            if (task.getDescription().toLowerCase().contains(lowerCaseKeyword)) {
                 matches.add(task);
             }
         }
@@ -105,7 +105,8 @@ public class TaskList {
     /**
      * Returns the tasks as a plain list, for code that only needs to read them.
      *
-     * @return an unmodifiable view of the tasks, in order.
+     * @return an unmodifiable copy of the tasks, in order, which later
+     *         changes to this list do not affect.
      */
     public List<Task> asList() {
         return List.copyOf(tasks);

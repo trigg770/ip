@@ -1,22 +1,17 @@
 package ted.task;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
  * A task that runs from one point in time to another,
  * e.g. {@code project meeting (from: 2 Dec 2019, 2:00 PM to: 2 Dec 2019, 4:00 PM)}.
  */
 public class Event extends Task {
-    /** Format used to present the start and end date-times to the user. */
-    private static final DateTimeFormatter DISPLAY_DATE_TIME_FORMAT =
-            DateTimeFormatter.ofPattern("d MMM uuuu, h:mm a");
-
     /** When the event starts. */
-    protected LocalDateTime from;
+    private final LocalDateTime from;
 
     /** When the event ends. */
-    protected LocalDateTime to;
+    private final LocalDateTime to;
 
     /**
      * Creates an event that is not done yet.
