@@ -94,14 +94,15 @@ public class TaskList {
     public TaskList find(String keyword) {
         String lowerCaseKeyword = keyword.toLowerCase();
         return new TaskList(tasks.stream()
-                .filter(task -> task.description.toLowerCase().contains(lowerCaseKeyword))
+                .filter(task -> task.getDescription().toLowerCase().contains(lowerCaseKeyword))
                 .toList());
     }
 
     /**
      * Returns the tasks as a plain list, for code that only needs to read them.
      *
-     * @return an unmodifiable view of the tasks, in order.
+     * @return an unmodifiable copy of the tasks, in order, which later
+     *         changes to this list do not affect.
      */
     public List<Task> asList() {
         return List.copyOf(tasks);
