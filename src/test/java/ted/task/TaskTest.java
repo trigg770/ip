@@ -208,4 +208,51 @@ public class TaskTest {
         todo.removeTags(List.of(new Tag("fun")));
         assertEquals("T | 0 | read book", todo.toSaveFormat());
     }
+
+    /**
+     * Verifies that two tasks of the same kind are duplicates when their
+     * descriptions differ only in case, whatever their status and tags.
+     */
+    @Test
+    public void isDuplicateOf_sameDescriptionInOtherCase_duplicate() {
+        Todo doneAndTagged = new Todo("Read Book");
+        doneAndTagged.markAsDone();
+        doneAndTagged.addTags(List.of(new Tag("fun")));
+        assertTrue(new Todo("read book").isDuplicateOf(doneAndTagged));
+    }
+
+    /**
+     * Verifies that tasks of different kinds are never duplicates, even with
+     * the same description.
+     */
+    @Test
+    public void isDuplicateOf_differentKinds_notDuplicate() {
+        Todo todo = new Todo("return book");
+        Deadline deadline = new Deadline("return book", SECOND_OF_DECEMBER_6PM);
+        assertFalse(todo.isDuplicateOf(deadline));
+        assertFalse(deadline.isDuplicateOf(todo));
+    }
+
+    /**
+     * Verifies that deadlines are duplicates only when they are due at the same time.
+     */
+    @Test
+    public void isDuplicateOf_deadlines_comparesDueTime() {
+        Deadline deadline = new Deadline("return book", SECOND_OF_DECEMBER_6PM);
+        assertTrue(deadline.isDuplicateOf(new Deadline("return book", SECOND_OF_DECEMBER_6PM)));
+        assertFalse(deadline.isDuplicateOf(new Deadline("return book", SECOND_OF_DECEMBER_4PM)));
+    }
+
+    /**
+     * Verifies that events are duplicates only when both their start and end match.
+     */
+    @Test
+    public void isDuplicateOf_events_comparesStartAndEnd() {
+        Event event = new Event("meeting", SECOND_OF_DECEMBER_4PM, SECOND_OF_DECEMBER_6PM);
+        assertTrue(event.isDuplicateOf(new Event("meeting", SECOND_OF_DECEMBER_4PM, SECOND_OF_DECEMBER_6PM)));
+        assertFalse(event.isDuplicateOf(
+                new Event("meeting", SECOND_OF_DECEMBER_4PM, SECOND_OF_DECEMBER_6PM.plusHours(1))));
+        assertFalse(event.isDuplicateOf(
+                new Event("meeting", SECOND_OF_DECEMBER_4PM.minusHours(1), SECOND_OF_DECEMBER_6PM)));
+    }
 }

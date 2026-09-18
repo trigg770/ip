@@ -33,6 +33,16 @@ public class Event extends Task {
     }
 
     /**
+     * {@inheritDoc} An event must also start and end at the same times, since
+     * a weekly meeting held on two different days is two separate events.
+     */
+    @Override
+    public boolean isDuplicateOf(Task other) {
+        return super.isDuplicateOf(other) && other instanceof Event event
+                && from.equals(event.from) && to.equals(event.to);
+    }
+
+    /**
      * Appends the start and end date-times in ISO format to the shared save-line
      * format, e.g. {@code E | 0 | 2019-12-02T14:00 | 2019-12-02T16:00 | project meeting}.
      */

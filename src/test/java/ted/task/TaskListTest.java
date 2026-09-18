@@ -227,4 +227,15 @@ public class TaskListTest {
         todo.addTags(List.of(new Tag("fun")));
         assertTrue(new TaskList(List.of(todo)).find("fun").isEmpty());
     }
+
+    /**
+     * Verifies that the list reports a duplicate only when it holds one.
+     */
+    @Test
+    public void hasDuplicateOf_matchingAndNewTasks_reportedCorrectly() {
+        TaskList tasks = new TaskList(List.of(new Todo("borrow book"), new Todo("read book")));
+        assertTrue(tasks.hasDuplicateOf(new Todo("Read book")));
+        assertFalse(tasks.hasDuplicateOf(new Todo("return book")));
+        assertFalse(new TaskList().hasDuplicateOf(new Todo("read book")));
+    }
 }

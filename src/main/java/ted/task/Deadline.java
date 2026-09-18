@@ -28,6 +28,15 @@ public class Deadline extends Task {
     }
 
     /**
+     * {@inheritDoc} A deadline must also be due at the same time, since the
+     * same job due on two different days is two separate deadlines.
+     */
+    @Override
+    public boolean isDuplicateOf(Task other) {
+        return super.isDuplicateOf(other) && other instanceof Deadline deadline && by.equals(deadline.by);
+    }
+
+    /**
      * Appends the due date and time in ISO format to the shared save-line
      * format, e.g. {@code D | 0 | 2019-12-02T18:00 | return book}.
      */

@@ -84,6 +84,18 @@ public class TaskList {
     }
 
     /**
+     * Returns whether the list already holds a task with the same details as
+     * the given one.
+     *
+     * @param task the task about to be added.
+     * @return {@code true} if a stored task is a duplicate of it.
+     * @see Task#isDuplicateOf(Task)
+     */
+    public boolean hasDuplicateOf(Task task) {
+        return tasks.stream().anyMatch(storedTask -> storedTask.isDuplicateOf(task));
+    }
+
+    /**
      * Returns the tasks whose description contains the given keyword.
      * <p>
      * The search ignores case, because a user looking for "book" should not
