@@ -66,7 +66,8 @@ public enum CommandType {
     }
 
     /**
-     * Finds the command a keyword refers to.
+     * Finds the command a keyword refers to, ignoring case, so that a keyword
+     * capitalized by a phone keyboard or a stray Caps Lock still works.
      *
      * @param keyword first word of the user's input.
      * @return the matching command.
@@ -74,9 +75,9 @@ public enum CommandType {
      */
     public static CommandType fromKeyword(String keyword) throws TedException {
         return Arrays.stream(values())
-                .filter(command -> command.keyword.equals(keyword))
+                .filter(command -> command.keyword.equalsIgnoreCase(keyword))
                 .findFirst()
-                .orElseThrow(() -> new TedException("I don't recognise \"" + keyword + "\". "
+                .orElseThrow(() -> new TedException("I don't recognize \"" + keyword + "\". "
                         + "I understand: " + listKeywords() + "."));
     }
 
