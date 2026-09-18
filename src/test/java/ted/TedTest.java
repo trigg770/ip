@@ -17,13 +17,24 @@ import org.junit.jupiter.api.io.TempDir;
  * can never disturb the user's own tasks.
  */
 public class TedTest {
+    /**
+     * Verifies that a command with leading spaces is recognized.
+     *
+     * @param tempDir The temporary directory for the save file.
+     */
     @Test
-    public void getResponse_leadingSpaces_commandRecognised(@TempDir Path tempDir) {
+    public void getResponse_leadingSpaces_commandRecognized(@TempDir Path tempDir) {
         // The GUI passes its text field on untrimmed, so Ted must cope with padding.
         Ted ted = new Ted(tempDir.resolve("ted.txt").toString());
         assertTrue(ted.getResponse("   list").contains("You have no tasks yet."));
     }
 
+    /**
+     * Verifies that a warning about unreadable save data follows the welcome message.
+     *
+     * @param tempDir The temporary directory for the save file.
+     * @throws IOException If the test save file cannot be written.
+     */
     @Test
     public void getGreeting_unreadableSaveLine_warningFollowsWelcome(@TempDir Path tempDir) throws IOException {
         Path dataFile = tempDir.resolve("ted.txt");

@@ -4,7 +4,9 @@ import ted.Storage;
 import ted.Ui;
 import ted.task.TaskList;
 
-/** Ends the conversation. */
+/**
+ * Ends the conversation.
+ */
 public class ExitCommand extends Command {
     /** Creates a command that ends the conversation. */
     public ExitCommand() {

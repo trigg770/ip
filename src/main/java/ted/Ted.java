@@ -110,7 +110,7 @@ public class Ted {
         try {
             command = Parser.parse(trimmedInput);
         } catch (TedException e) {
-            // Every problem Ted can recognise is recoverable, so the message is
+            // Every problem Ted can recognize is recoverable, so the message is
             // shown and the conversation continues with the next command.
             ui.showError(e.getMessage());
             return ui.flush();

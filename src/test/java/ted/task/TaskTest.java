@@ -23,11 +23,17 @@ public class TaskTest {
     /** Two hours before {@link #SECOND_OF_DECEMBER_6PM}. */
     private static final LocalDateTime SECOND_OF_DECEMBER_4PM = LocalDateTime.of(2019, 12, 2, 16, 0);
 
+    /**
+     * Verifies that a new todo displays its type, incomplete status, and description.
+     */
     @Test
     public void toString_newTodo_showsTypeAndEmptyStatus() {
         assertEquals("[T][ ] borrow book", new Todo("borrow book").toString());
     }
 
+    /**
+     * Verifies that a completed todo displays a cross in its status indicator.
+     */
     @Test
     public void toString_doneTodo_showsCross() {
         Todo todo = new Todo("borrow book");
@@ -35,6 +41,9 @@ public class TaskTest {
         assertEquals("[T][X] borrow book", todo.toString());
     }
 
+    /**
+     * Verifies that unmarking a completed task restores its incomplete status.
+     */
     @Test
     public void markAsNotDone_doneTask_reversesTheMark() {
         Todo todo = new Todo("borrow book");
@@ -43,6 +52,9 @@ public class TaskTest {
         assertEquals("[T][ ] borrow book", todo.toString());
     }
 
+    /**
+     * Verifies that a deadline displays its type, description, and formatted due date and time.
+     */
     @Test
     public void toString_deadline_showsFriendlyDate() {
         String shown = new Deadline("return book", SECOND_OF_DECEMBER_6PM).toString();
@@ -53,6 +65,9 @@ public class TaskTest {
         assertTrue(shown.contains("6:00"));
     }
 
+    /**
+     * Verifies that an event displays its type, description, and both start and end times.
+     */
     @Test
     public void toString_event_showsBothEnds() {
         String shown = new Event("meeting", SECOND_OF_DECEMBER_4PM, SECOND_OF_DECEMBER_6PM).toString();
@@ -61,11 +76,17 @@ public class TaskTest {
         assertTrue(shown.contains("6:00"));
     }
 
+    /**
+     * Verifies that a new todo saves its type, incomplete flag, and description.
+     */
     @Test
     public void toSaveFormat_todo_writesIconDoneFlagAndDescription() {
         assertEquals("T | 0 | borrow book", new Todo("borrow book").toSaveFormat());
     }
 
+    /**
+     * Verifies that a completed todo saves its done flag as one.
+     */
     @Test
     public void toSaveFormat_doneTodo_writesOneAsTheFlag() {
         Todo todo = new Todo("borrow book");
@@ -73,6 +94,9 @@ public class TaskTest {
         assertEquals("T | 1 | borrow book", todo.toSaveFormat());
     }
 
+    /**
+     * Verifies that a deadline saves its due date and time in ISO-8601 format.
+     */
     @Test
     public void toSaveFormat_deadline_writesIsoDateTime() {
         // ISO-8601 rather than the display format, so the file does not change
@@ -81,12 +105,18 @@ public class TaskTest {
                 new Deadline("return book", SECOND_OF_DECEMBER_6PM).toSaveFormat());
     }
 
+    /**
+     * Verifies that an event saves both its start and end date-times in ISO-8601 format.
+     */
     @Test
     public void toSaveFormat_event_writesBothIsoDateTimes() {
         assertEquals("E | 0 | 2019-12-02T16:00 | 2019-12-02T18:00 | meeting",
                 new Event("meeting", SECOND_OF_DECEMBER_4PM, SECOND_OF_DECEMBER_6PM).toSaveFormat());
     }
 
+    /**
+     * Verifies that a pipe in a task description is escaped when saved.
+     */
     @Test
     public void toSaveFormat_descriptionContainingSeparator_escapesIt() {
         // An unescaped pipe would split the description into two fields when
@@ -94,11 +124,17 @@ public class TaskTest {
         assertEquals("T | 0 | rock \\| roll", new Todo("rock | roll").toSaveFormat());
     }
 
+    /**
+     * Verifies that a backslash in a task description is escaped when saved.
+     */
     @Test
     public void toSaveFormat_descriptionContainingBackslash_escapesIt() {
         assertEquals("T | 0 | back\\\\slash", new Todo("back\\slash").toSaveFormat());
     }
 
+    /**
+     * Verifies that a todo displays its tags after its description in insertion order.
+     */
     @Test
     public void toString_taggedTodo_showsTagsAfterDescription() {
         Todo todo = new Todo("read book");
@@ -106,6 +142,9 @@ public class TaskTest {
         assertEquals("[T][ ] read book #fun #school", todo.toString());
     }
 
+    /**
+     * Verifies that a deadline displays its tags between its description and due date.
+     */
     @Test
     public void toString_taggedDeadline_showsTagsBeforeDate() {
         Deadline deadline = new Deadline("return book", SECOND_OF_DECEMBER_6PM);
@@ -113,6 +152,9 @@ public class TaskTest {
         assertTrue(deadline.toString().startsWith("[D][ ] return book #library (by: "));
     }
 
+    /**
+     * Verifies that adding an existing tag with different capitalization creates no duplicate.
+     */
     @Test
     public void addTags_tagAlreadyPresent_notRepeated() {
         Todo todo = new Todo("read book");
@@ -122,6 +164,9 @@ public class TaskTest {
         assertEquals("[T][ ] read book #fun #school", todo.toString());
     }
 
+    /**
+     * Verifies that removing selected tags preserves the task's other tags.
+     */
     @Test
     public void removeTags_someOfTheTags_removesOnlyThose() {
         Todo todo = new Todo("read book");
@@ -131,6 +176,9 @@ public class TaskTest {
         assertFalse(todo.hasTag(new Tag("school")));
     }
 
+    /**
+     * Verifies that a todo saves its tags between its done flag and description.
+     */
     @Test
     public void toSaveFormat_taggedTodo_writesTagsAfterDoneFlag() {
         Todo todo = new Todo("read book");
@@ -138,6 +186,9 @@ public class TaskTest {
         assertEquals("T | 0 | #fun #school | read book", todo.toSaveFormat());
     }
 
+    /**
+     * Verifies that an event saves its tags before its start and end date-times.
+     */
     @Test
     public void toSaveFormat_taggedEvent_writesTagsBeforeDates() {
         Event event = new Event("meeting", SECOND_OF_DECEMBER_4PM, SECOND_OF_DECEMBER_6PM);
@@ -146,6 +197,9 @@ public class TaskTest {
                 event.toSaveFormat());
     }
 
+    /**
+     * Verifies that removing the final tag restores the untagged save format.
+     */
     @Test
     public void toSaveFormat_lastTagRemoved_writesUntaggedLine() {
         // Without tags the line must be exactly what Ted wrote before tags existed.

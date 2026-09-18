@@ -210,10 +210,10 @@ public class Ui {
         }
 
         show(header);
-        List<Task> taskList = tasks.asList();
-        for (int i = 0; i < taskList.size(); i++) {
+        List<Task> displayedTasks = tasks.asList();
+        for (int i = 0; i < displayedTasks.size(); i++) {
             // Displayed numbering is 1-based even though list indices are 0-based.
-            show((i + 1) + "." + taskList.get(i));
+            show((i + 1) + "." + displayedTasks.get(i));
         }
     }
 

@@ -30,38 +30,59 @@ import ted.task.Todo;
  * caught: every check it skips becomes a crash or a wrong task later on.
  */
 public class ParserTest {
+    /**
+     * Verifies that a todo description produces an add command.
+     */
     @Test
     public void parse_todoWithDescription_returnsAddCommand() throws TedException {
         assertInstanceOf(AddCommand.class, Parser.parse("todo borrow book"));
     }
 
+    /**
+     * Verifies that a deadline with a valid date and time produces an add command.
+     */
     @Test
     public void parse_deadlineWithValidDateTime_returnsAddCommand() throws TedException {
         assertInstanceOf(AddCommand.class, Parser.parse("deadline return book /by 2/12/2019 1800"));
     }
 
+    /**
+     * Verifies that an event with valid start and end times produces an add command.
+     */
     @Test
     public void parse_eventWithValidDateTimes_returnsAddCommand() throws TedException {
         assertInstanceOf(AddCommand.class,
                 Parser.parse("event meeting /from 2/12/2019 1400 /to 2/12/2019 1600"));
     }
 
+    /**
+     * Verifies that the list keyword produces a list command.
+     */
     @Test
     public void parse_listCommand_returnsListCommand() throws TedException {
         assertInstanceOf(ListCommand.class, Parser.parse("list"));
     }
 
+    /**
+     * Verifies that delete followed by a task number produces a delete command.
+     */
     @Test
     public void parse_deleteCommand_returnsDeleteCommand() throws TedException {
         assertInstanceOf(DeleteCommand.class, Parser.parse("delete 2"));
     }
 
+    /**
+     * Verifies that mark and unmark both produce mark commands.
+     */
     @Test
     public void parse_markCommand_returnsMarkCommand() throws TedException {
         assertInstanceOf(MarkCommand.class, Parser.parse("mark 1"));
         assertInstanceOf(MarkCommand.class, Parser.parse("unmark 1"));
     }
 
+    /**
+     * Verifies that bye produces an exit command that requests termination.
+     */
     @Test
     public void parse_byeCommand_returnsExitingCommand() throws TedException {
         Command command = Parser.parse("bye");
@@ -69,28 +90,43 @@ public class ParserTest {
         assertTrue(command.isExit());
     }
 
+    /**
+     * Verifies that a list command does not request termination.
+     */
     @Test
     public void parse_otherCommand_doesNotExit() throws TedException {
         assertFalse(Parser.parse("list").isExit());
     }
 
+    /**
+     * Verifies that find with a keyword produces a find command.
+     */
     @Test
     public void parse_findWithKeyword_returnsFindCommand() throws TedException {
         assertInstanceOf(FindCommand.class, Parser.parse("find book"));
     }
 
+    /**
+     * Verifies that find accepts a keyword containing spaces.
+     */
     @Test
     public void parse_findWithMultiWordKeyword_returnsFindCommand() throws TedException {
         // The whole of the rest of the line is the keyword, spaces included.
         assertInstanceOf(FindCommand.class, Parser.parse("find return book"));
     }
 
+    /**
+     * Verifies that find rejects missing and whitespace-only keywords.
+     */
     @Test
     public void parse_findWithoutKeyword_exceptionThrown() {
         assertThrows(TedException.class, () -> Parser.parse("find"));
         assertThrows(TedException.class, () -> Parser.parse("find    "));
     }
 
+    /**
+     * Verifies that an unknown command reports its keyword and a supported command.
+     */
     @Test
     public void parse_unknownKeyword_exceptionThrown() {
         TedException e = assertThrows(TedException.class, () -> Parser.parse("blah"));
@@ -99,39 +135,60 @@ public class ParserTest {
         assertTrue(e.getMessage().contains("todo"));
     }
 
+    /**
+     * Verifies that command keywords must match completely.
+     */
     @Test
     public void parse_keywordWithTrailingLetters_exceptionThrown() {
         // "todos" must not be accepted as "todo": the command word is matched whole.
         assertThrows(TedException.class, () -> Parser.parse("todos borrow book"));
     }
 
+    /**
+     * Verifies that todo rejects missing and whitespace-only descriptions.
+     */
     @Test
     public void parse_todoWithoutDescription_exceptionThrown() {
         assertThrows(TedException.class, () -> Parser.parse("todo"));
         assertThrows(TedException.class, () -> Parser.parse("todo    "));
     }
 
+    /**
+     * Verifies that a deadline requires the /by separator.
+     */
     @Test
     public void parse_deadlineWithoutBy_exceptionThrown() {
         assertThrows(TedException.class, () -> Parser.parse("deadline return book"));
     }
 
+    /**
+     * Verifies that a deadline requires a description.
+     */
     @Test
     public void parse_deadlineWithoutDescription_exceptionThrown() {
         assertThrows(TedException.class, () -> Parser.parse("deadline /by 2/12/2019 1800"));
     }
 
+    /**
+     * Verifies that a deadline requires a date and time after /by.
+     */
     @Test
     public void parse_deadlineWithoutDateTime_exceptionThrown() {
         assertThrows(TedException.class, () -> Parser.parse("deadline return book /by"));
     }
 
+    /**
+     * Verifies that an unreadable deadline date and time appear in the error message.
+     */
     @Test
     public void parse_deadlineWithUnreadableDateTime_exceptionThrown() {
         TedException e = assertThrows(TedException.class, () -> Parser.parse("deadline return book /by tomorrow"));
         assertTrue(e.getMessage().contains("tomorrow"));
     }
 
+    /**
+     * Verifies that a deadline rejects a date without a time.
+     */
     @Test
     public void parse_deadlineWithDateButNoTime_exceptionThrown() {
         // The time is part of the expected format, so a bare date is rejected
@@ -139,22 +196,34 @@ public class ParserTest {
         assertThrows(TedException.class, () -> Parser.parse("deadline return book /by 2/12/2019"));
     }
 
+    /**
+     * Verifies that a deadline rejects an impossible calendar date.
+     */
     @Test
     public void parse_deadlineWithImpossibleDate_exceptionThrown() {
         assertThrows(TedException.class, () -> Parser.parse("deadline return book /by 31/2/2019 1800"));
     }
 
+    /**
+     * Verifies that an event requires both /from and /to separators.
+     */
     @Test
     public void parse_eventMissingOneSeparator_exceptionThrown() {
         assertThrows(TedException.class, () -> Parser.parse("event meeting /from 2/12/2019 1400"));
         assertThrows(TedException.class, () -> Parser.parse("event meeting /to 2/12/2019 1600"));
     }
 
+    /**
+     * Verifies that an event rejects an end separator before its start separator.
+     */
     @Test
     public void parse_eventWithSeparatorsSwapped_exceptionThrown() {
         assertThrows(TedException.class, () -> Parser.parse("event meeting /to 2/12/2019 1600 /from 2/12/2019 1400"));
     }
 
+    /**
+     * Verifies that /to within a description remains part of the event description.
+     */
     @Test
     public void parse_eventDescriptionContainingSlashTo_descriptionKept() throws TedException {
         // "w/tom" contains "/to", which once was mistaken for the end-time separator.
@@ -164,6 +233,9 @@ public class ParserTest {
         assertEquals("lunch w/tom", tasks.get(0).getDescription());
     }
 
+    /**
+     * Verifies that /by within a description remains part of the deadline description.
+     */
     @Test
     public void parse_deadlineDescriptionContainingSlashBy_descriptionKept() throws TedException {
         TaskList tasks = new TaskList();
@@ -172,11 +244,17 @@ public class ParserTest {
         assertEquals("read w/bytes", tasks.get(0).getDescription());
     }
 
+    /**
+     * Verifies that an event cannot end before it starts.
+     */
     @Test
     public void parse_eventEndingBeforeStart_exceptionThrown() {
         assertThrows(TedException.class, () -> Parser.parse("event meeting /from 2/12/2019 1600 /to 2/12/2019 1400"));
     }
 
+    /**
+     * Verifies that an event may start and end at the same time.
+     */
     @Test
     public void parse_eventEndingWhenItStarts_returnsAddCommand() throws TedException {
         // A zero-length event is odd but not impossible, so it is allowed.
@@ -184,18 +262,27 @@ public class ParserTest {
                 Parser.parse("event meeting /from 2/12/2019 1400 /to 2/12/2019 1400"));
     }
 
+    /**
+     * Verifies that delete and mark require a task number.
+     */
     @Test
     public void parse_taskNumberMissing_exceptionThrown() {
         assertThrows(TedException.class, () -> Parser.parse("delete"));
         assertThrows(TedException.class, () -> Parser.parse("mark"));
     }
 
+    /**
+     * Verifies that a nonnumeric task number appears in the error message.
+     */
     @Test
     public void parse_taskNumberNotANumber_exceptionThrown() {
         TedException e = assertThrows(TedException.class, () -> Parser.parse("delete two"));
         assertTrue(e.getMessage().contains("two"));
     }
 
+    /**
+     * Verifies that extra spaces around command arguments are accepted.
+     */
     @Test
     public void parse_extraSpacesAroundArgument_argumentTrimmed() throws TedException {
         // Whether the user pads their input should make no difference.
@@ -203,6 +290,9 @@ public class ParserTest {
         assertInstanceOf(DeleteCommand.class, Parser.parse("delete   2  "));
     }
 
+    /**
+     * Verifies that uppercase command keywords are rejected.
+     */
     @Test
     public void parse_commandWordAlone_isCaseSensitive() {
         // Ted's keywords are lower case; accepting "LIST" would need a decision
@@ -210,6 +300,9 @@ public class ParserTest {
         assertThrows(TedException.class, () -> Parser.parse("LIST"));
     }
 
+    /**
+     * Verifies that a displayed task number is converted to a zero-based index.
+     */
     @Test
     public void parse_deleteWithNumber_indexIsZeroBased() throws TedException {
         // The user counts from 1; a command built from "delete 1" must therefore
@@ -219,12 +312,18 @@ public class ParserTest {
         assertEquals(0, tasks.size());
     }
 
+    /**
+     * Verifies that tag and untag with tags produce tag commands.
+     */
     @Test
     public void parse_tagOrUntagWithTags_returnsTagCommand() throws TedException {
         assertInstanceOf(TagCommand.class, Parser.parse("tag 1 #fun"));
         assertInstanceOf(TagCommand.class, Parser.parse("untag 1 #fun #school"));
     }
 
+    /**
+     * Verifies that tagging normalizes case and ignores duplicate tags and extra spaces.
+     */
     @Test
     public void parse_tagThenExecute_tagsTheTaskInLowerCase() throws TedException {
         TaskList tasks = new TaskList(List.of(new Todo("read book")));
@@ -233,6 +332,9 @@ public class ParserTest {
         assertEquals("[T][ ] read book #fun #school", tasks.get(0).toString());
     }
 
+    /**
+     * Verifies that untag removes only the specified tags.
+     */
     @Test
     public void parse_untagThenExecute_removesOnlyThoseTags() throws TedException {
         TaskList tasks = new TaskList(List.of(new Todo("read book")));
@@ -241,6 +343,9 @@ public class ParserTest {
         assertEquals("[T][ ] read book #fun", tasks.get(0).toString());
     }
 
+    /**
+     * Verifies that missing tag arguments produce usage examples for the requested command.
+     */
     @Test
     public void parse_tagWithoutTaskOrTags_exceptionThrown() {
         TedException noArgument = assertThrows(TedException.class, () -> Parser.parse("tag"));
@@ -249,12 +354,18 @@ public class ParserTest {
         assertTrue(noTags.getMessage().contains("untag 2 #fun"));
     }
 
+    /**
+     * Verifies that tagging rejects a nonnumeric task number with an explanation.
+     */
     @Test
     public void parse_tagWithBadTaskNumber_exceptionThrown() {
         TedException e = assertThrows(TedException.class, () -> Parser.parse("tag two #fun"));
         assertTrue(e.getMessage().contains("\"two\" is not a task number"));
     }
 
+    /**
+     * Verifies that tagging rejects tags with a missing prefix, empty name, or invalid character.
+     */
     @Test
     public void parse_tagWithInvalidTag_exceptionThrown() {
         TedException e = assertThrows(TedException.class, () -> Parser.parse("tag 2 fun"));
@@ -263,6 +374,9 @@ public class ParserTest {
         assertThrows(TedException.class, () -> Parser.parse("tag 2 #to-do"));
     }
 
+    /**
+     * Verifies that untag rejects absent tags without removing any existing tags.
+     */
     @Test
     public void parse_untagTagTheTaskLacks_exceptionThrownAndTaskUnchanged() throws TedException {
         TaskList tasks = new TaskList(List.of(new Todo("read book")));
@@ -276,6 +390,9 @@ public class ParserTest {
         assertEquals("[T][ ] read book #fun", tasks.get(0).toString());
     }
 
+    /**
+     * Verifies that tagging rejects a task number beyond the task list.
+     */
     @Test
     public void parse_tagTaskNumberPastEnd_exceptionThrown() throws TedException {
         TaskList tasks = new TaskList(List.of(new Todo("read book")));
@@ -283,6 +400,9 @@ public class ParserTest {
         assertThrows(TedException.class, () -> tag.execute(tasks, new SilentUi(), new NoOpStorage()));
     }
 
+    /**
+     * Verifies that a tag search ignores case and excludes tasks with only matching description text.
+     */
     @Test
     public void parse_findWithTag_showsOnlyTasksWithThatTag() throws TedException {
         TaskList tasks = new TaskList(List.of(new Todo("read book"), new Todo("fun fair")));
@@ -296,6 +416,9 @@ public class ParserTest {
         assertFalse(reply.contains("fun fair"));
     }
 
+    /**
+     * Verifies that tag searches reject multiple tags and empty tag names.
+     */
     @Test
     public void parse_findWithInvalidTag_exceptionThrown() {
         TedException e = assertThrows(TedException.class, () -> Parser.parse("find #fun #school"));
@@ -303,26 +426,47 @@ public class ParserTest {
         assertThrows(TedException.class, () -> Parser.parse("find #"));
     }
 
+    /**
+     * Verifies that a hash within a text keyword is accepted as part of the keyword.
+     */
     @Test
     public void parse_findWithHashLaterInKeyword_returnsFindCommand() throws TedException {
         // Only a keyword that starts with # is a tag search.
         assertInstanceOf(FindCommand.class, Parser.parse("find book #fun"));
     }
 
-    /** A Ui that says nothing, so tests do not print over the test report. */
+    /**
+     * A Ui that says nothing, so tests do not print over the test report.
+     */
     private static class SilentUi extends Ui {
+        /**
+         * Suppresses removal messages during tests.
+         *
+         * @param task The removed task.
+         * @param taskCount The number of remaining tasks.
+         */
         @Override
         public void showRemoved(Task task, int taskCount) {
             // Deliberately silent.
         }
     }
 
-    /** Storage that keeps nothing, so tests never touch a real save file. */
+    /**
+     * Storage that keeps nothing, so tests never touch a real save file.
+     */
     private static class NoOpStorage extends Storage {
+        /**
+         * Creates storage with an unused save path for tests.
+         */
         NoOpStorage() {
             super("data/unused.txt");
         }
 
+        /**
+         * Suppresses writes to the save file during tests.
+         *
+         * @param tasks The tasks that would otherwise be saved.
+         */
         @Override
         public void save(TaskList tasks) {
             // Deliberately does nothing.

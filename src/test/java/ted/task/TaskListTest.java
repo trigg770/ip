@@ -21,6 +21,9 @@ import ted.TedException;
  * mistyped task number and a crash.
  */
 public class TaskListTest {
+    /**
+     * Verifies that a new task list is empty and has size zero.
+     */
     @Test
     public void size_newList_isEmpty() {
         TaskList tasks = new TaskList();
@@ -28,6 +31,9 @@ public class TaskListTest {
         assertTrue(tasks.isEmpty());
     }
 
+    /**
+     * Verifies that adding tasks preserves their insertion order and updates the list size.
+     */
     @Test
     public void add_severalTasks_keepsInsertionOrder() throws TedException {
         TaskList tasks = new TaskList();
@@ -42,12 +48,18 @@ public class TaskListTest {
         assertSame(second, tasks.get(1));
     }
 
+    /**
+     * Verifies that a valid index retrieves the corresponding task.
+     */
     @Test
     public void get_indexWithinList_returnsTask() throws TedException {
         TaskList tasks = new TaskList(List.of(new Todo("only task")));
         assertEquals("only task", tasks.get(0).toString().substring("[T][ ] ".length()));
     }
 
+    /**
+     * Verifies that an index past the end is rejected with task numbers the user sees.
+     */
     @Test
     public void get_indexPastEnd_exceptionThrown() {
         TaskList tasks = new TaskList(List.of(new Todo("only task")));
@@ -57,12 +69,18 @@ public class TaskListTest {
         assertTrue(e.getMessage().contains("between 1 and 1"));
     }
 
+    /**
+     * Verifies that retrieving a task at a negative index is rejected.
+     */
     @Test
     public void get_negativeIndex_exceptionThrown() {
         TaskList tasks = new TaskList(List.of(new Todo("only task")));
         assertThrows(TedException.class, () -> tasks.get(-1));
     }
 
+    /**
+     * Verifies that retrieving from an empty list reports that the list is empty.
+     */
     @Test
     public void get_emptyList_exceptionThrown() {
         TaskList tasks = new TaskList();
@@ -70,6 +88,9 @@ public class TaskListTest {
         assertTrue(e.getMessage().contains("empty"));
     }
 
+    /**
+     * Verifies that removing a task returns it and shifts the remaining tasks into place.
+     */
     @Test
     public void remove_indexWithinList_removesAndReturnsTask() throws TedException {
         Todo first = new Todo("first");
@@ -82,6 +103,9 @@ public class TaskListTest {
         assertSame(second, tasks.get(0));
     }
 
+    /**
+     * Verifies that an index past the end is rejected without removing any tasks.
+     */
     @Test
     public void remove_indexPastEnd_exceptionThrown() {
         TaskList tasks = new TaskList(List.of(new Todo("only task")));
@@ -90,22 +114,31 @@ public class TaskListTest {
         assertEquals(1, tasks.size());
     }
 
+    /**
+     * Verifies that removing a task from an empty list is rejected.
+     */
     @Test
     public void remove_emptyList_exceptionThrown() {
         assertThrows(TedException.class, () -> new TaskList().remove(0));
     }
 
+    /**
+     * Verifies that later changes to the source list do not affect the task list.
+     */
     @Test
     public void constructor_givenList_copiesIt() throws TedException {
-        ArrayList<Task> source = new ArrayList<>();
-        source.add(new Todo("first"));
-        TaskList tasks = new TaskList(source);
+        ArrayList<Task> sourceTasks = new ArrayList<>();
+        sourceTasks.add(new Todo("first"));
+        TaskList tasks = new TaskList(sourceTasks);
 
         // Later changes to the caller's list must not leak into the task list.
-        source.add(new Todo("second"));
+        sourceTasks.add(new Todo("second"));
         assertEquals(1, tasks.size());
     }
 
+    /**
+     * Verifies that searching returns matching tasks in order without changing the original list.
+     */
     @Test
     public void find_keywordInSomeDescriptions_returnsOnlyThose() throws TedException {
         TaskList tasks = new TaskList(List.of(
@@ -119,12 +152,18 @@ public class TaskListTest {
         assertEquals(3, tasks.size());
     }
 
+    /**
+     * Verifies that a keyword absent from every description produces no matches.
+     */
     @Test
     public void find_keywordInNoDescription_returnsEmptyList() {
         TaskList tasks = new TaskList(List.of(new Todo("read book")));
         assertTrue(tasks.find("bicycle").isEmpty());
     }
 
+    /**
+     * Verifies that description searches ignore differences in letter case.
+     */
     @Test
     public void find_differingCase_stillMatches() {
         // A user looking for "book" should not have to remember the case used
@@ -134,24 +173,36 @@ public class TaskListTest {
         assertEquals(1, tasks.find("BOOK").size());
     }
 
+    /**
+     * Verifies that description searches match a keyword within a longer word.
+     */
     @Test
     public void find_partOfAWord_matches() {
         TaskList tasks = new TaskList(List.of(new Todo("bookshop visit")));
         assertEquals(1, tasks.find("book").size());
     }
 
+    /**
+     * Verifies that searching an empty task list produces no matches.
+     */
     @Test
     public void find_emptyList_returnsEmptyList() {
         assertTrue(new TaskList().find("book").isEmpty());
     }
 
+    /**
+     * Verifies that callers cannot add tasks to the list returned by asList.
+     */
     @Test
     public void asList_returnedList_cannotBeModified() {
         TaskList tasks = new TaskList(List.of(new Todo("only task")));
-        List<Task> view = tasks.asList();
-        assertThrows(UnsupportedOperationException.class, () -> view.add(new Todo("sneaky")));
+        List<Task> tasksView = tasks.asList();
+        assertThrows(UnsupportedOperationException.class, () -> tasksView.add(new Todo("sneaky")));
     }
 
+    /**
+     * Verifies that tag searches return exact matches and exclude similar tag names.
+     */
     @Test
     public void findByTag_similarTags_returnsOnlyExactMatches() throws TedException {
         Todo fun = new Todo("read book");
@@ -166,6 +217,9 @@ public class TaskListTest {
         assertSame(fun, matches.get(0));
     }
 
+    /**
+     * Verifies that description searches do not match text found only in a tag.
+     */
     @Test
     public void find_keywordOnlyInATag_noMatch() {
         // find searches descriptions, and a tag is not part of the description.

@@ -33,6 +33,9 @@ public class StorageTest {
     /** Two hours before {@link #SECOND_OF_DECEMBER_6PM}. */
     private static final LocalDateTime SECOND_OF_DECEMBER_4PM = LocalDateTime.of(2019, 12, 2, 16, 0);
 
+    /**
+     * Verifies that loading a missing save file returns an empty task list.
+     */
     @Test
     public void load_fileDoesNotExist_returnsEmptyList(@TempDir Path tempDir) throws TedException {
         // The first run on a new computer has no save file, which must not be an error.
@@ -40,6 +43,9 @@ public class StorageTest {
         assertTrue(storage.load().isEmpty());
     }
 
+    /**
+     * Verifies that saving creates the missing parent folder and data file.
+     */
     @Test
     public void save_folderDoesNotExist_createsIt(@TempDir Path tempDir) throws TedException {
         Path dataFile = tempDir.resolve("data").resolve("ted.txt");
@@ -48,6 +54,9 @@ public class StorageTest {
         assertTrue(Files.exists(dataFile));
     }
 
+    /**
+     * Verifies that saving and loading preserve each task type and its saved state.
+     */
     @Test
     public void saveThenLoad_everyTaskType_roundTripsUnchanged(@TempDir Path tempDir) throws TedException {
         Storage storage = new Storage(tempDir.resolve("ted.txt").toString());
@@ -59,31 +68,37 @@ public class StorageTest {
                 new Event("meeting", SECOND_OF_DECEMBER_4PM, SECOND_OF_DECEMBER_6PM)));
 
         storage.save(saved);
-        List<Task> loaded = storage.load();
+        List<Task> loadedTasks = storage.load();
 
-        assertEquals(3, loaded.size());
+        assertEquals(3, loadedTasks.size());
         assertEquals(0, storage.getSkippedLineCount());
-        assertInstanceOf(Todo.class, loaded.get(0));
-        assertInstanceOf(Deadline.class, loaded.get(1));
-        assertInstanceOf(Event.class, loaded.get(2));
+        assertInstanceOf(Todo.class, loadedTasks.get(0));
+        assertInstanceOf(Deadline.class, loadedTasks.get(1));
+        assertInstanceOf(Event.class, loadedTasks.get(2));
         // Comparing the save format checks the description, the done flag and
         // the dates in one go.
-        for (int i = 0; i < loaded.size(); i++) {
-            assertEquals(saved.asList().get(i).toSaveFormat(), loaded.get(i).toSaveFormat());
+        for (int i = 0; i < loadedTasks.size(); i++) {
+            assertEquals(saved.asList().get(i).toSaveFormat(), loadedTasks.get(i).toSaveFormat());
         }
     }
 
+    /**
+     * Verifies that saving and loading preserve pipes and backslashes in descriptions.
+     */
     @Test
     public void saveThenLoad_descriptionContainingSeparator_roundTripsUnchanged(@TempDir Path tempDir)
             throws TedException {
         Storage storage = new Storage(tempDir.resolve("ted.txt").toString());
         storage.save(new TaskList(List.of(new Todo("rock | roll \\ blues"))));
 
-        List<Task> loaded = storage.load();
-        assertEquals(1, loaded.size());
-        assertEquals("[T][ ] rock | roll \\ blues", loaded.get(0).toString());
+        List<Task> loadedTasks = storage.load();
+        assertEquals(1, loadedTasks.size());
+        assertEquals("[T][ ] rock | roll \\ blues", loadedTasks.get(0).toString());
     }
 
+    /**
+     * Verifies that saving an empty list removes previously saved tasks.
+     */
     @Test
     public void save_emptyList_forgetsPreviousTasks(@TempDir Path tempDir) throws TedException {
         // Deleting the last task must be remembered, not silently undone by an
@@ -94,6 +109,9 @@ public class StorageTest {
         assertTrue(storage.load().isEmpty());
     }
 
+    /**
+     * Verifies that loading ignores blank lines without counting them as corrupted.
+     */
     @Test
     public void load_blankLines_ignoresThem(@TempDir Path tempDir) throws TedException, IOException {
         Path dataFile = tempDir.resolve("ted.txt");
@@ -104,6 +122,9 @@ public class StorageTest {
         assertEquals(0, storage.getSkippedLineCount());
     }
 
+    /**
+     * Verifies that loading counts corrupted records and preserves valid tasks.
+     */
     @Test
     public void load_corruptedLines_skipsThemAndKeepsTheRest(@TempDir Path tempDir)
             throws TedException, IOException {
@@ -118,15 +139,18 @@ public class StorageTest {
                 "E | 1 | 2019-12-02T16:00 | 2019-12-02T18:00 | meeting"));
 
         Storage storage = new Storage(dataFile.toString());
-        List<Task> loaded = storage.load();
+        List<Task> loadedTasks = storage.load();
 
         // The good lines survive; the five broken ones are counted, not fatal.
-        assertEquals(2, loaded.size());
+        assertEquals(2, loadedTasks.size());
         assertEquals(5, storage.getSkippedLineCount());
-        assertEquals("[T][ ] borrow book", loaded.get(0).toString());
-        assertInstanceOf(Event.class, loaded.get(1));
+        assertEquals("[T][ ] borrow book", loadedTasks.get(0).toString());
+        assertInstanceOf(Event.class, loadedTasks.get(1));
     }
 
+    /**
+     * Verifies that each load resets the count of skipped records.
+     */
     @Test
     public void load_calledTwice_resetsTheSkippedCount(@TempDir Path tempDir)
             throws TedException, IOException {
@@ -140,6 +164,9 @@ public class StorageTest {
         assertEquals(0, storage.getSkippedLineCount());
     }
 
+    /**
+     * Verifies that loading accepts a valid record written directly to the save file.
+     */
     @Test
     public void load_fileHandEditedByUser_isAccepted(@TempDir Path tempDir)
             throws TedException, IOException {
@@ -148,11 +175,14 @@ public class StorageTest {
         Path dataFile = tempDir.resolve("ted.txt");
         Files.writeString(dataFile, "D | 1 | 2019-12-02T18:00 | return book\n");
 
-        List<Task> loaded = new Storage(dataFile.toString()).load();
-        assertEquals(1, loaded.size());
-        assertEquals("D | 1 | 2019-12-02T18:00 | return book", loaded.get(0).toSaveFormat());
+        List<Task> loadedTasks = new Storage(dataFile.toString()).load();
+        assertEquals(1, loadedTasks.size());
+        assertEquals("D | 1 | 2019-12-02T18:00 | return book", loadedTasks.get(0).toSaveFormat());
     }
 
+    /**
+     * Verifies that saving and loading preserve tags and the rest of each task's saved state.
+     */
     @Test
     public void saveThenLoad_taggedTasks_roundTripsUnchanged(@TempDir Path tempDir) throws TedException {
         Storage storage = new Storage(tempDir.resolve("ted.txt").toString());
@@ -166,18 +196,21 @@ public class StorageTest {
         TaskList saved = new TaskList(List.of(todo, deadline, event));
 
         storage.save(saved);
-        List<Task> loaded = storage.load();
+        List<Task> loadedTasks = storage.load();
 
-        assertEquals(3, loaded.size());
+        assertEquals(3, loadedTasks.size());
         assertEquals(0, storage.getSkippedLineCount());
-        assertInstanceOf(Deadline.class, loaded.get(1));
-        assertInstanceOf(Event.class, loaded.get(2));
+        assertInstanceOf(Deadline.class, loadedTasks.get(1));
+        assertInstanceOf(Event.class, loadedTasks.get(2));
         // The save format includes the tags, so matching it proves they came back.
-        for (int i = 0; i < loaded.size(); i++) {
-            assertEquals(saved.asList().get(i).toSaveFormat(), loaded.get(i).toSaveFormat());
+        for (int i = 0; i < loadedTasks.size(); i++) {
+            assertEquals(saved.asList().get(i).toSaveFormat(), loadedTasks.get(i).toSaveFormat());
         }
     }
 
+    /**
+     * Verifies that loading preserves untagged records from before tagging was added.
+     */
     @Test
     public void load_linesWrittenBeforeTags_readAsBefore(@TempDir Path tempDir)
             throws TedException, IOException {
@@ -190,15 +223,18 @@ public class StorageTest {
                 "D | 1 | 2019-12-02T18:00 | return book"));
 
         Storage storage = new Storage(dataFile.toString());
-        List<Task> loaded = storage.load();
+        List<Task> loadedTasks = storage.load();
 
-        assertEquals(3, loaded.size());
+        assertEquals(3, loadedTasks.size());
         assertEquals(0, storage.getSkippedLineCount());
-        assertEquals("T | 0 | #fun", loaded.get(0).toSaveFormat());
-        assertEquals("[T][ ] rock | roll", loaded.get(1).toString());
-        assertEquals("D | 1 | 2019-12-02T18:00 | return book", loaded.get(2).toSaveFormat());
+        assertEquals("T | 0 | #fun", loadedTasks.get(0).toSaveFormat());
+        assertEquals("[T][ ] rock | roll", loadedTasks.get(1).toString());
+        assertEquals("D | 1 | 2019-12-02T18:00 | return book", loadedTasks.get(2).toSaveFormat());
     }
 
+    /**
+     * Verifies that loading normalizes tag case and removes repeated tags.
+     */
     @Test
     public void load_tagsInCapitalsOrRepeated_loadedOnceInLowerCase(@TempDir Path tempDir)
             throws TedException, IOException {
@@ -206,10 +242,13 @@ public class StorageTest {
         Path dataFile = tempDir.resolve("ted.txt");
         Files.writeString(dataFile, "T | 0 | #Fun #fun #School | read book\n");
 
-        List<Task> loaded = new Storage(dataFile.toString()).load();
-        assertEquals("T | 0 | #fun #school | read book", loaded.get(0).toSaveFormat());
+        List<Task> loadedTasks = new Storage(dataFile.toString()).load();
+        assertEquals("T | 0 | #fun #school | read book", loadedTasks.get(0).toSaveFormat());
     }
 
+    /**
+     * Verifies that an invalid tag field remains part of a legacy task description.
+     */
     @Test
     public void load_fieldThatIsNotValidTags_keptInDescription(@TempDir Path tempDir)
             throws TedException, IOException {
@@ -218,7 +257,7 @@ public class StorageTest {
         Path dataFile = tempDir.resolve("ted.txt");
         Files.writeString(dataFile, "T | 0 | #to-do | read book\n");
 
-        List<Task> loaded = new Storage(dataFile.toString()).load();
-        assertEquals("[T][ ] #to-do | read book", loaded.get(0).toString());
+        List<Task> loadedTasks = new Storage(dataFile.toString()).load();
+        assertEquals("[T][ ] #to-do | read book", loadedTasks.get(0).toString());
     }
 }
