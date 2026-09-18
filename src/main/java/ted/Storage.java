@@ -1,13 +1,19 @@
 package ted;
 
 import java.io.IOException;
+import java.nio.charset.CharacterCodingException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import ted.task.Deadline;
@@ -34,6 +40,10 @@ import ted.task.Todo;
  * D | 0 | 2019-06-06T18:00 | return book
  * E | 0 | #cs2103 | 2019-08-06T14:00 | 2019-08-06T16:00 | project meeting
  * </pre>
+ * <p>
+ * Because the file can be edited by hand, it may hold lines Ted cannot read.
+ * Those lines would be lost the next time Ted saves, so the file is first
+ * copied aside, e.g. to {@code data/ted.txt.bak}, for the user to recover them.
  */
 public class Storage {
     /**
@@ -43,11 +53,20 @@ public class Storage {
      */
     private static final String FIELD_SEPARATOR_REGEX = Pattern.quote(Task.SAVE_FIELD_SEPARATOR);
 
+    /** Added to the data file's name to name the copy kept of an unreadable file. */
+    private static final String BACKUP_SUFFIX = ".bak";
+
     /** File the task list is persisted to. */
     private final Path dataFile;
 
+    /** Where the data file is copied before Ted overwrites content it could not read. */
+    private final Path backupFile;
+
     /** How many lines the last {@link #load()} could not make sense of. */
     private int skippedLineCount = 0;
+
+    /** Whether the last {@link #load()} copied the data file to {@link #backupFile}. */
+    private boolean hasBackup = false;
 
     /**
      * Creates storage backed by the given file.
@@ -56,6 +75,7 @@ public class Storage {
      */
     public Storage(String filePath) {
         this.dataFile = Path.of(filePath);
+        this.backupFile = Path.of(filePath + BACKUP_SUFFIX);
     }
 
     /**
@@ -79,8 +99,7 @@ public class Storage {
                     .toList();
             Files.write(dataFile, lines);
         } catch (IOException e) {
-            throw new TedException("Unable to save tasks to " + dataFile
-                    + " (" + e.getMessage() + ").");
+            throw new TedException("I couldn't save your tasks to " + dataFile + ": " + describe(e) + ".");
         }
     }
 
@@ -88,6 +107,8 @@ public class Storage {
      * Reads the task list back from the data file.
      * A line that is not in the expected format is skipped rather than allowed
      * to take down startup; {@link #getSkippedLineCount()} reports how many.
+     * Whenever something could not be read, the file is copied aside first;
+     * {@link #getBackupFile()} reports where.
      *
      * @return the tasks in the order they were saved, or an empty list if the
      *         file does not exist yet (first run).
@@ -96,28 +117,30 @@ public class Storage {
     public List<Task> load() throws TedException {
         List<Task> tasks = new ArrayList<>();
         skippedLineCount = 0;
+        hasBackup = false;
 
         if (Files.notExists(dataFile)) {
             return tasks;
         }
 
-        try {
-            for (String line : Files.readAllLines(dataFile)) {
-                if (line.isBlank()) {
-                    // A stray blank line (e.g. at the end of the file) is not a task.
-                    continue;
-                }
-
-                Task task = parseLine(line);
-                if (task == null) {
-                    skippedLineCount++;
-                } else {
-                    tasks.add(task);
-                }
+        for (String line : readDataFile()) {
+            if (line.isBlank()) {
+                // A stray blank line (e.g. at the end of the file) is not a task.
+                continue;
             }
-        } catch (IOException e) {
-            throw new TedException("Unable to load tasks from " + dataFile
-                    + " (" + e.getMessage() + ").");
+
+            Task task = parseLine(line);
+            if (task == null) {
+                skippedLineCount++;
+            } else {
+                tasks.add(task);
+            }
+        }
+
+        if (skippedLineCount > 0) {
+            // The next save writes only the tasks that were read, so the
+            // skipped lines would be gone for good without a copy.
+            backUpDataFile();
         }
         return tasks;
     }
@@ -129,6 +152,78 @@ public class Storage {
      */
     public int getSkippedLineCount() {
         return skippedLineCount;
+    }
+
+    /**
+     * Returns where the last {@link #load()} copied the data file, if it found
+     * something it could not read.
+     *
+     * @return the copy's location, or an empty {@code Optional} if no copy
+     *         was needed or the copy could not be made.
+     */
+    public Optional<Path> getBackupFile() {
+        return hasBackup ? Optional.of(backupFile) : Optional.empty();
+    }
+
+    /**
+     * Reads every line of the data file.
+     *
+     * @return the file's lines, in order.
+     * @throws TedException if the file is a folder or cannot be read.
+     */
+    private List<String> readDataFile() throws TedException {
+        if (Files.isDirectory(dataFile)) {
+            throw new TedException("I couldn't read your saved tasks: " + dataFile + " is a folder, not a file.");
+        }
+
+        try {
+            return Files.readAllLines(dataFile);
+        } catch (IOException e) {
+            // Ted carries on with an empty list and overwrites the file on the
+            // first change, so the whole file is copied aside before that.
+            backUpDataFile();
+            throw new TedException("I couldn't read your saved tasks in " + dataFile + ": " + describe(e) + ".");
+        }
+    }
+
+    /**
+     * Copies the data file to {@link #backupFile}, replacing any older copy.
+     * A failed copy is not treated as an error of its own: the user is already
+     * being warned about the file, and {@link #getBackupFile()} stays empty so
+     * that no copy is promised.
+     */
+    private void backUpDataFile() {
+        try {
+            Files.copy(dataFile, backupFile, StandardCopyOption.REPLACE_EXISTING);
+            hasBackup = true;
+        } catch (IOException e) {
+            hasBackup = false;
+        }
+    }
+
+    /**
+     * Explains a file problem in words the user can act on.
+     * Some exceptions carry nothing but the file's path as their message,
+     * which says where the problem is but not what it is.
+     *
+     * @param e the problem that stopped a read or write.
+     * @return a short explanation, e.g. {@code permission denied}.
+     */
+    private static String describe(IOException e) {
+        if (e instanceof AccessDeniedException) {
+            return "permission denied";
+        }
+        if (e instanceof CharacterCodingException) {
+            return "it is not saved as UTF-8 text";
+        }
+        if (e instanceof FileAlreadyExistsException) {
+            // Thrown when a file sits where the data folder should be.
+            return e.getMessage() + " is a file, but I need a folder there";
+        }
+        if (e instanceof FileSystemException fileSystemException && fileSystemException.getReason() != null) {
+            return fileSystemException.getReason();
+        }
+        return e.getMessage();
     }
 
     /**

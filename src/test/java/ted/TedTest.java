@@ -45,4 +45,20 @@ public class TedTest {
         int warningIndex = greeting.indexOf("Skipped 1 unreadable line");
         assertTrue(welcomeIndex >= 0 && warningIndex > welcomeIndex);
     }
+
+    /**
+     * Verifies that the greeting tells the user where the unreadable save
+     * file was copied.
+     *
+     * @param tempDir The temporary directory for the save file.
+     * @throws IOException If the test save file cannot be written.
+     */
+    @Test
+    public void getGreeting_unreadableSaveLine_mentionsTheCopy(@TempDir Path tempDir) throws IOException {
+        Path dataFile = tempDir.resolve("ted.txt");
+        Files.write(dataFile, List.of("not a task"));
+
+        String greeting = new Ted(dataFile.toString()).getGreeting();
+        assertTrue(greeting.contains("kept a copy of the original file at " + tempDir.resolve("ted.txt.bak")));
+    }
 }

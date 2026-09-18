@@ -3,6 +3,7 @@ package ted;
 import java.io.IOException;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
@@ -21,7 +22,8 @@ public class Main extends Application {
 
     /**
      * Loads Ted's main window, connects it to the chatbot, and displays it.
-     * Reports an error to standard error if the window cannot be loaded.
+     * If the window cannot be loaded, reports the error to standard error and
+     * closes the app.
      *
      * @param stage the primary window supplied by JavaFX.
      */
@@ -39,8 +41,9 @@ public class Main extends Application {
             stage.show();
         } catch (IOException e) {
             // Without its window there is nothing left for the app to do, so the
-            // failure is reported rather than swallowed.
+            // failure is reported and the app closes rather than running unseen.
             e.printStackTrace();
+            Platform.exit();
         }
     }
 }

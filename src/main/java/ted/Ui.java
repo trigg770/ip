@@ -1,5 +1,6 @@
 package ted;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Scanner;
 
@@ -106,11 +107,10 @@ public class Ui {
     /**
      * Warns that the saved tasks could not be read, so Ted starts empty.
      *
-     * @param message explanation of what went wrong.
+     * @param message explanation of what went wrong, phrased as Ted would say it.
      */
     public void showLoadingError(String message) {
-        show("I couldn't read your saved tasks (" + message + ").",
-                "Starting with an empty list.");
+        show(message, "Starting with an empty list for now.");
     }
 
     /**
@@ -122,6 +122,16 @@ public class Ui {
         String lineWord = skippedLineCount == 1 ? "line" : "lines";
         show("Skipped " + skippedLineCount + " unreadable " + lineWord
                 + " in your save file.");
+    }
+
+    /**
+     * Tells the user where the unreadable save file was copied, so that
+     * nothing in it is lost when Ted next saves.
+     *
+     * @param backupFile where the copy was made.
+     */
+    public void showBackup(Path backupFile) {
+        show("I've kept a copy of the original file at " + backupFile + ".");
     }
 
     /**

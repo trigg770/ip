@@ -1,7 +1,9 @@
 package ted;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -259,5 +261,79 @@ public class StorageTest {
 
         List<Task> loadedTasks = new Storage(dataFile.toString()).load();
         assertEquals("[T][ ] #to-do | read book", loadedTasks.get(0).toString());
+    }
+
+    /**
+     * Verifies that a file with unreadable lines is copied aside before Ted
+     * can overwrite those lines, and that the copy matches the original.
+     */
+    @Test
+    public void load_unreadableLines_originalCopiedAside(@TempDir Path tempDir) throws TedException, IOException {
+        Path dataFile = tempDir.resolve("ted.txt");
+        String original = "T | 0 | borrow book\ngibberish\n";
+        Files.writeString(dataFile, original);
+
+        Storage storage = new Storage(dataFile.toString());
+        storage.load();
+
+        Path backupFile = tempDir.resolve("ted.txt.bak");
+        assertEquals(backupFile, storage.getBackupFile().orElseThrow());
+        assertEquals(original, Files.readString(backupFile));
+    }
+
+    /**
+     * Verifies that a file Ted can read in full is not copied.
+     */
+    @Test
+    public void load_cleanFile_noCopyMade(@TempDir Path tempDir) throws TedException, IOException {
+        Path dataFile = tempDir.resolve("ted.txt");
+        Files.writeString(dataFile, "T | 0 | borrow book\n");
+
+        Storage storage = new Storage(dataFile.toString());
+        storage.load();
+
+        assertTrue(storage.getBackupFile().isEmpty());
+        assertFalse(Files.exists(tempDir.resolve("ted.txt.bak")));
+    }
+
+    /**
+     * Verifies that a file that is not UTF-8 text is reported in plain words,
+     * and copied aside before Ted starts over with an empty list.
+     */
+    @Test
+    public void load_fileNotUtf8_exceptionThrownAndOriginalCopiedAside(@TempDir Path tempDir) throws IOException {
+        Path dataFile = tempDir.resolve("ted.txt");
+        // 0xFF can never appear in UTF-8, e.g. when the file was saved as UTF-16.
+        byte[] original = {(byte) 0xFF, (byte) 0xFE, 'T', 0};
+        Files.write(dataFile, original);
+
+        Storage storage = new Storage(dataFile.toString());
+        TedException e = assertThrows(TedException.class, storage::load);
+
+        assertTrue(e.getMessage().contains("not saved as UTF-8 text"));
+        assertTrue(storage.getBackupFile().isPresent());
+    }
+
+    /**
+     * Verifies that a folder where the data file should be is reported rather
+     * than read.
+     */
+    @Test
+    public void load_dataFileIsAFolder_exceptionThrown(@TempDir Path tempDir) throws IOException {
+        Path dataFile = Files.createDirectory(tempDir.resolve("ted.txt"));
+        TedException e = assertThrows(TedException.class, () -> new Storage(dataFile.toString()).load());
+        assertTrue(e.getMessage().contains("is a folder, not a file"));
+    }
+
+    /**
+     * Verifies that a file where the data folder should be is reported in plain words.
+     */
+    @Test
+    public void save_fileWhereFolderShouldBe_exceptionThrown(@TempDir Path tempDir) throws IOException {
+        Files.writeString(tempDir.resolve("data"), "not a folder");
+        Storage storage = new Storage(tempDir.resolve("data").resolve("ted.txt").toString());
+
+        TedException e = assertThrows(TedException.class, () -> storage.save(new TaskList()));
+        assertTrue(e.getMessage().contains("is a file, but I need a folder there"));
     }
 }
