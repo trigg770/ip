@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -237,6 +238,22 @@ public class TaskListTest {
         assertTrue(tasks.hasDuplicateOf(new Todo("Read book")));
         assertFalse(tasks.hasDuplicateOf(new Todo("return book")));
         assertFalse(new TaskList().hasDuplicateOf(new Todo("read book")));
+    }
+
+    /**
+     * Verifies that searches still ignore case on a computer set to Turkish,
+     * whose rules lower a capital I to a dotless i.
+     */
+    @Test
+    public void find_turkishLocale_stillIgnoresCase() {
+        Locale originalLocale = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+            TaskList tasks = new TaskList(List.of(new Todo("FINISH work")));
+            assertEquals(1, tasks.find("finish").size());
+        } finally {
+            Locale.setDefault(originalLocale);
+        }
     }
 
     /**

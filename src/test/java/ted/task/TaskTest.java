@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -58,11 +59,7 @@ public class TaskTest {
     @Test
     public void toString_deadline_showsFriendlyDate() {
         String shown = new Deadline("return book", SECOND_OF_DECEMBER_6PM).toString();
-        // The exact am/pm wording depends on the locale, so check the parts
-        // that do not: the type, the description and the date itself.
-        assertTrue(shown.startsWith("[D][ ] return book (by: "));
-        assertTrue(shown.contains("2 Dec 2019"));
-        assertTrue(shown.contains("6:00"));
+        assertEquals("[D][ ] return book (by: 2 Dec 2019, 6:00 PM)", shown);
     }
 
     /**
@@ -71,9 +68,7 @@ public class TaskTest {
     @Test
     public void toString_event_showsBothEnds() {
         String shown = new Event("meeting", SECOND_OF_DECEMBER_4PM, SECOND_OF_DECEMBER_6PM).toString();
-        assertTrue(shown.startsWith("[E][ ] meeting (from: "));
-        assertTrue(shown.contains("4:00"));
-        assertTrue(shown.contains("6:00"));
+        assertEquals("[E][ ] meeting (from: 2 Dec 2019, 4:00 PM to: 2 Dec 2019, 6:00 PM)", shown);
     }
 
     /**
@@ -254,5 +249,21 @@ public class TaskTest {
                 new Event("meeting", SECOND_OF_DECEMBER_4PM, SECOND_OF_DECEMBER_6PM.plusHours(1))));
         assertFalse(event.isDuplicateOf(
                 new Event("meeting", SECOND_OF_DECEMBER_4PM.minusHours(1), SECOND_OF_DECEMBER_6PM)));
+    }
+
+    /**
+     * Verifies that dates are shown in English whatever the computer's
+     * language setting, to match the rest of Ted's replies.
+     */
+    @Test
+    public void toString_chineseLocale_showsEnglishDate() {
+        Locale originalLocale = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.SIMPLIFIED_CHINESE);
+            String shown = new Deadline("return book", SECOND_OF_DECEMBER_6PM).toString();
+            assertEquals("[D][ ] return book (by: 2 Dec 2019, 6:00 PM)", shown);
+        } finally {
+            Locale.setDefault(originalLocale);
+        }
     }
 }
