@@ -2,6 +2,7 @@ package ted.task;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import ted.TedException;
 
@@ -99,15 +100,18 @@ public class TaskList {
      * Returns the tasks whose description contains the given keyword.
      * <p>
      * The search ignores case, because a user looking for "book" should not
-     * have to remember whether they typed "Book" when adding the task.
+     * have to remember whether they typed "Book" when adding the task. Case is
+     * folded with {@link Locale#ROOT} rather than the computer's own locale:
+     * under Turkish rules, "FINISH" lowers to a word spelled with a dotless i,
+     * which would never match "finish".
      *
      * @param keyword text to look for inside task descriptions.
      * @return the matching tasks, in the order they appear in this list.
      */
     public TaskList find(String keyword) {
-        String lowerCaseKeyword = keyword.toLowerCase();
+        String lowerCaseKeyword = keyword.toLowerCase(Locale.ROOT);
         return new TaskList(tasks.stream()
-                .filter(task -> task.getDescription().toLowerCase().contains(lowerCaseKeyword))
+                .filter(task -> task.getDescription().toLowerCase(Locale.ROOT).contains(lowerCaseKeyword))
                 .toList());
     }
 
@@ -124,6 +128,21 @@ public class TaskList {
         return new TaskList(tasks.stream()
                 .filter(task -> task.hasTag(tag))
                 .toList());
+    }
+
+    /**
+     * Returns the number the user sees next to a task in the full list.
+     * Tasks are matched by identity rather than by their details, so that
+     * two tasks that look alike still get their own numbers.
+     *
+     * @param task a task held by this list.
+     * @return the task's position, counting from 1.
+     */
+    public int getNumberOf(Task task) {
+        // Task does not override equals, so indexOf compares identities.
+        int index = tasks.indexOf(task);
+        assert index >= 0 : "callers only ask about tasks taken from this list";
+        return index + 1;
     }
 
     /**

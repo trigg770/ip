@@ -3,6 +3,7 @@ package ted.task;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,9 +21,15 @@ public abstract class Task {
     /** Separator between fields in the save file. */
     public static final String SAVE_FIELD_SEPARATOR = " | ";
 
-    /** Format used to present dates and times to the user, shared by every kind of task. */
+    /**
+     * Format used to present dates and times to the user, shared by every kind
+     * of task. English is fixed because the rest of Ted speaks English: left
+     * to the computer's locale, a Chinese system would show the month and the
+     * "PM" in Chinese in the middle of an English sentence, and even English
+     * locales disagree on "PM" versus "pm".
+     */
     protected static final DateTimeFormatter DISPLAY_DATE_TIME_FORMAT =
-            DateTimeFormatter.ofPattern("d MMM uuuu, h:mm a");
+            DateTimeFormatter.ofPattern("d MMM uuuu, h:mm a", Locale.ENGLISH);
 
     /** What the user wants to get done. */
     private final String description;

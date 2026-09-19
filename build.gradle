@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'checkstyle'
+    id 'jacoco'
     id 'com.gradleup.shadow' version '9.5.1'
 }
 
@@ -44,6 +45,8 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    // Every test run also writes a coverage report, to show which code the tests never reach.
+    finalizedBy jacocoTestReport
 
     testLogging {
         events 'passed', 'skipped', 'failed'
@@ -53,6 +56,14 @@ test {
         showCauses = true
         showStackTraces = true
         showStandardStreams = false
+    }
+}
+
+jacocoTestReport {
+    reports {
+        // HTML to browse in build/reports/jacoco, CSV for a quick summary in the terminal.
+        html.required = true
+        csv.required = true
     }
 }
 

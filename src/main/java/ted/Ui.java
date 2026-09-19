@@ -1,7 +1,6 @@
 package ted;
 
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Scanner;
 
 import ted.task.Task;
@@ -66,7 +65,9 @@ public class Ui {
      * @return the finished reply, without a trailing newline.
      */
     public String flush() {
-        String finishedReply = reply.toString().strip();
+        // Only trailing space is removed: the banner's first line starts with
+        // a space that keeps the ASCII art lined up.
+        String finishedReply = reply.toString().stripTrailing();
         reply.setLength(0);
         return finishedReply;
     }
@@ -190,40 +191,40 @@ public class Ui {
      * @param tasks the tasks to show.
      */
     public void showTasks(TaskList tasks) {
-        showNumbered(tasks, "Here are the tasks in your list:", "You have no tasks yet.");
+        showNumbered(tasks, tasks, "Here are the tasks in your list:", "You have no tasks yet.");
     }
 
     /**
-     * Shows the tasks that matched a search, as a numbered list.
-     * The numbers count the matches, not the positions in the full list, so
-     * they are not the numbers to pass to mark or delete.
+     * Shows the tasks that matched a search, each with its number in the full
+     * list, so that the number shown is the one to pass to mark, delete or tag.
      *
+     * @param tasks   every stored task, which the numbers refer to.
      * @param matches the tasks that matched.
      * @param keyword what the user searched for, repeated back when nothing matched.
      */
-    public void showMatchingTasks(TaskList matches, String keyword) {
-        showNumbered(matches, "Here are the matching tasks in your list:",
+    public void showMatchingTasks(TaskList tasks, TaskList matches, String keyword) {
+        showNumbered(tasks, matches, "Here are the matching tasks in your list:",
                 "No task matches \"" + keyword + "\".");
     }
 
     /**
-     * Adds tasks to the reply as a numbered list, starting from 1.
+     * Adds tasks to the reply as a list, each numbered by its place in the
+     * full task list.
      *
-     * @param tasks        the tasks to show.
+     * @param tasks        every stored task, which the numbers refer to.
+     * @param shownTasks   the tasks to show, all taken from {@code tasks}.
      * @param header       line introducing the list.
-     * @param emptyMessage line to show instead when there are no tasks.
+     * @param emptyMessage line to show instead when there are no tasks to show.
      */
-    private void showNumbered(TaskList tasks, String header, String emptyMessage) {
-        if (tasks.isEmpty()) {
+    private void showNumbered(TaskList tasks, TaskList shownTasks, String header, String emptyMessage) {
+        if (shownTasks.isEmpty()) {
             show(emptyMessage);
             return;
         }
 
         show(header);
-        List<Task> displayedTasks = tasks.asList();
-        for (int i = 0; i < displayedTasks.size(); i++) {
-            // Displayed numbering is 1-based even though list indices are 0-based.
-            show((i + 1) + "." + displayedTasks.get(i));
+        for (Task task : shownTasks.asList()) {
+            show(tasks.getNumberOf(task) + "." + task);
         }
     }
 

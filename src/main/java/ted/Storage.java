@@ -245,6 +245,11 @@ public class Storage {
         // field: even a corrupted line must have at least its icon before
         // anything can be parsed.
         String[] rawFields = line.split(FIELD_SEPARATOR_REGEX);
+        if (rawFields.length == 0) {
+            // A line of nothing but separators, e.g. " | ", splits into no
+            // fields at all, since split() drops trailing empty strings.
+            return null;
+        }
         String icon = rawFields[0];
         int fieldCount = fieldCountFor(icon);
         if (fieldCount == -1) {
