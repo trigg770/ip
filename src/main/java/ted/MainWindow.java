@@ -7,7 +7,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
@@ -16,9 +15,11 @@ import javafx.util.Duration;
  * <p>
  * Holds the conversation together: it puts what the user typed and what Ted
  * replied into the dialog container, and closes the window once Ted has said
- * goodbye. The layout itself is described in {@code MainWindow.fxml}.
+ * goodbye. The layout itself is described in {@code MainWindow.fxml}. Adapted
+ * from the main window in the SE-EDU JavaFX tutorial
+ * (https://se-education.org/guides/tutorials/javaFx.html).
  */
-public class MainWindow extends AnchorPane {
+public class MainWindow {
     /** How long Ted's goodbye stays on screen before the window closes. */
     private static final Duration GOODBYE_PAUSE = Duration.seconds(1.5);
 
@@ -31,7 +32,6 @@ public class MainWindow extends AnchorPane {
     @FXML
     private Button sendButton;
 
-    private final Image userImage = new Image(this.getClass().getResourceAsStream("/images/DaUser.png"));
     private final Image tedImage = new Image(this.getClass().getResourceAsStream("/images/DaTed.png"));
 
     /** The chatbot answering in this window, supplied by {@link #setTed(Ted)}. */
@@ -57,7 +57,7 @@ public class MainWindow extends AnchorPane {
      */
     public void setTed(Ted ted) {
         this.ted = ted;
-        dialogContainer.getChildren().add(DialogBox.getTedDialog(ted.getGreeting(), tedImage));
+        dialogContainer.getChildren().add(createTedDialog(ted.getGreeting()));
     }
 
     /**
@@ -69,17 +69,16 @@ public class MainWindow extends AnchorPane {
         assert ted != null : "Main calls setTed before showing the window, so input always has a Ted";
         String input = userInput.getText();
         String response = ted.getResponse(input);
+        userInput.clear();
+        // Clicking Send moves the focus to the button; handing it back lets the
+        // user type the next command straight away.
+        userInput.requestFocus();
         if (response.isEmpty()) {
             // A blank line gets no reply, so nothing is worth showing.
-            userInput.clear();
             return;
         }
 
-        dialogContainer.getChildren().addAll(
-                DialogBox.getUserDialog(input, userImage),
-                DialogBox.getTedDialog(response, tedImage)
-        );
-        userInput.clear();
+        dialogContainer.getChildren().addAll(DialogBox.getUserDialog(input.strip()), createTedDialog(response));
 
         if (ted.isExit()) {
             // The goodbye would flash past if the window closed immediately.
@@ -89,5 +88,17 @@ public class MainWindow extends AnchorPane {
             pause.setOnFinished(event -> Platform.exit());
             pause.play();
         }
+    }
+
+    /**
+     * Returns a bubble for Ted's latest message, in red if it explains a problem.
+     *
+     * @param message what Ted just said.
+     * @return the dialog box to add to the conversation.
+     */
+    private DialogBox createTedDialog(String message) {
+        return ted.isError()
+                ? DialogBox.getTedErrorDialog(message, tedImage)
+                : DialogBox.getTedDialog(message, tedImage);
     }
 }

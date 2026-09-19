@@ -5,8 +5,8 @@ import java.io.IOException;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 /**
@@ -31,12 +31,13 @@ public class Main extends Application {
     public void start(Stage stage) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("/view/MainWindow.fxml"));
-            AnchorPane root = fxmlLoader.load();
+            Parent root = fxmlLoader.load();
             stage.setScene(new Scene(root));
             stage.setTitle("Ted");
-            // Below these the send button and text field start overlapping.
-            stage.setMinHeight(220);
-            stage.setMinWidth(417);
+            // The layout stretches to any size, but below these the window has
+            // room for too little of the conversation to be useful.
+            stage.setMinHeight(300);
+            stage.setMinWidth(320);
             fxmlLoader.<MainWindow>getController().setTed(ted);
             stage.show();
         } catch (IOException e) {
