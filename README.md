@@ -1,6 +1,10 @@
 # Ted
 
-Ted is a cheeky teddy bear chatbot that keeps track of your todos, deadlines and events. Given below are instructions on how to set it up.
+Ted is a cheeky teddy bear chatbot that keeps track of your todos, deadlines and events.
+
+* To use Ted, download `ted.jar` from the [latest release](https://github.com/trigg770/ip/releases/latest)
+  and read the [user guide](https://trigg770.github.io/ip/).
+* To work on Ted's code, follow the instructions below to set it up.
 
 ## Setting up in Intellij
 
