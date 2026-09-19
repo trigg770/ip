@@ -201,7 +201,11 @@ public class ParserTest {
      */
     @Test
     public void parse_deadlineWithImpossibleDate_exceptionThrown() {
-        assertThrows(TedException.class, () -> Parser.parse("deadline return book /by 31/2/2019 1800"));
+        // Both have the right shape, so the message must point at the values.
+        TedException e = assertThrows(TedException.class, () -> Parser.parse("deadline essay /by 31/2/2019 1800"));
+        assertTrue(e.getMessage().contains("not a real date"));
+        e = assertThrows(TedException.class, () -> Parser.parse("deadline essay /by 2/12/2019 2400"));
+        assertTrue(e.getMessage().contains("not a real date"));
     }
 
     /**
@@ -253,13 +257,12 @@ public class ParserTest {
     }
 
     /**
-     * Verifies that an event may start and end at the same time.
+     * Verifies that an event cannot end at the moment it starts.
      */
     @Test
-    public void parse_eventEndingWhenItStarts_returnsAddCommand() throws TedException {
-        // A zero-length event is odd but not impossible, so it is allowed.
-        assertInstanceOf(AddCommand.class,
-                Parser.parse("event meeting /from 2/12/2019 1400 /to 2/12/2019 1400"));
+    public void parse_eventEndingWhenItStarts_exceptionThrown() {
+        // A zero-length event is almost always a typo in one of the two times.
+        assertThrows(TedException.class, () -> Parser.parse("event meeting /from 2/12/2019 1400 /to 2/12/2019 1400"));
     }
 
     /**
@@ -291,13 +294,64 @@ public class ParserTest {
     }
 
     /**
-     * Verifies that uppercase command keywords are rejected.
+     * Verifies that command keywords are recognized in any case, while the
+     * rest of the input keeps the case it was typed in.
      */
     @Test
-    public void parse_commandWordAlone_isCaseSensitive() {
-        // Ted's keywords are lower case; accepting "LIST" would need a decision
-        // about the rest of the input too, so it is rejected for now.
-        assertThrows(TedException.class, () -> Parser.parse("LIST"));
+    public void parse_commandWordInCapitals_recognized() throws TedException {
+        assertInstanceOf(ListCommand.class, Parser.parse("LIST"));
+        assertInstanceOf(AddCommand.class, Parser.parse("Todo Borrow Book"));
+
+        TaskList tasks = new TaskList();
+        Parser.parse("Todo Borrow Book").execute(tasks, new SilentUi(), new NoOpStorage());
+        assertEquals("[T][ ] Borrow Book", tasks.get(0).toString());
+    }
+
+    /**
+     * Verifies that runs of spaces or tabs anywhere in the input are read as a
+     * single space.
+     */
+    @Test
+    public void parse_extraSpacesOrTabsInsideInput_readAsOneSpace() throws TedException {
+        TaskList tasks = new TaskList();
+        Command command = Parser.parse("deadline\treturn   book /by  2/12/2019   1800");
+        command.execute(tasks, new SilentUi(), new NoOpStorage());
+        assertEquals("D | 0 | 2019-12-02T18:00 | return book", tasks.get(0).toSaveFormat());
+    }
+
+    /**
+     * Verifies that commands that work on their own reject anything typed after them.
+     */
+    @Test
+    public void parse_listOrByeWithArgument_exceptionThrown() {
+        TedException e = assertThrows(TedException.class, () -> Parser.parse("list #fun"));
+        assertTrue(e.getMessage().contains("#fun"));
+        assertThrows(TedException.class, () -> Parser.parse("bye now"));
+    }
+
+    /**
+     * Verifies that giving an option twice is rejected, since there is no
+     * telling which of the two the user meant.
+     */
+    @Test
+    public void parse_optionGivenTwice_exceptionThrown() {
+        String twoDueTimes = "deadline return book /by 2/12/2019 1800 /by 3/12/2019 1800";
+        String twoStarts = "event meeting /from 2/12/2019 1400 /from 2/12/2019 1500 /to 2/12/2019 1600";
+        String twoEnds = "event meeting /from 2/12/2019 1400 /to 2/12/2019 1500 /to 2/12/2019 1600";
+
+        TedException e = assertThrows(TedException.class, () -> Parser.parse(twoDueTimes));
+        assertTrue(e.getMessage().contains("/by only once"));
+        assertThrows(TedException.class, () -> Parser.parse(twoStarts));
+        assertThrows(TedException.class, () -> Parser.parse(twoEnds));
+    }
+
+    /**
+     * Verifies that a command taking one task number rejects several.
+     */
+    @Test
+    public void parse_severalTaskNumbers_exceptionThrown() {
+        TedException e = assertThrows(TedException.class, () -> Parser.parse("delete 1 2"));
+        assertTrue(e.getMessage().contains("One task at a time"));
     }
 
     /**

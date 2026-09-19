@@ -133,7 +133,8 @@ public class Ted {
     }
 
     /**
-     * Returns Ted's opening message, including any complaint about the save file.
+     * Returns Ted's opening message, including any complaint about the save
+     * file and where a copy of it was kept.
      *
      * @return the greeting to show before the user has typed anything.
      */
@@ -145,6 +146,7 @@ public class Ted {
         if (storage.getSkippedLineCount() > 0) {
             ui.showSkippedLines(storage.getSkippedLineCount());
         }
+        storage.getBackupFile().ifPresent(ui::showBackup);
         return ui.flush();
     }
 

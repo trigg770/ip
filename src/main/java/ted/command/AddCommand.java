@@ -29,10 +29,16 @@ public class AddCommand extends Command {
     /**
      * Adds the task to the list, confirms it, and saves the updated list.
      *
-     * @throws TedException if the updated list cannot be saved.
+     * @throws TedException if the list already has the same task, or the
+     *                      updated list cannot be saved.
      */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws TedException {
+        if (tasks.hasDuplicateOf(task)) {
+            // A second copy would leave the user unsure which one to mark or delete.
+            throw new TedException("You already have this task, so I didn't add it again: " + task);
+        }
+
         tasks.add(task);
         ui.showAdded(task, tasks.size());
         storage.save(tasks);

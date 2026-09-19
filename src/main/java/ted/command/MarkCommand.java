@@ -32,11 +32,19 @@ public class MarkCommand extends Command {
     /**
      * Changes the task's done status, shows the result, and saves the list.
      *
-     * @throws TedException if no task has that number, or the list cannot be saved.
+     * @throws TedException if no task has that number, the task already has
+     *                      that status, or the list cannot be saved.
      */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws TedException {
         Task task = tasks.get(index);
+        if (task.isDone() == isDone) {
+            // Confirming a change that did not happen would suggest the user
+            // picked the task they meant, when they may have mixed up two numbers.
+            String status = isDone ? "done" : "not done";
+            throw new TedException("Task " + (index + 1) + " is already marked as " + status + ": " + task);
+        }
+
         if (isDone) {
             task.markAsDone();
         } else {

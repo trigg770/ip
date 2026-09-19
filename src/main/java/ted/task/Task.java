@@ -65,6 +65,15 @@ public abstract class Task {
         return isDone ? "X" : " ";
     }
 
+    /**
+     * Returns whether this task has been completed.
+     *
+     * @return {@code true} if the task is done.
+     */
+    public boolean isDone() {
+        return isDone;
+    }
+
     /** Marks this task as completed. */
     public void markAsDone() {
         this.isDone = true;
@@ -102,6 +111,22 @@ public abstract class Task {
      */
     public boolean hasTag(Tag tag) {
         return tags.contains(tag);
+    }
+
+    /**
+     * Returns whether this task has the same details as another, so that adding
+     * it to a list that already holds the other would only clutter the list.
+     * <p>
+     * Case is ignored in the description, since "Read book" and "read book"
+     * are the same job. The done status and tags are not compared: they change
+     * over a task's life rather than describe what the task is. Subclasses
+     * with dates extend this to compare them too.
+     *
+     * @param other the task to compare with.
+     * @return {@code true} if both are the same kind of task with the same description.
+     */
+    public boolean isDuplicateOf(Task other) {
+        return getClass() == other.getClass() && description.equalsIgnoreCase(other.description);
     }
 
     /**
