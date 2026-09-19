@@ -104,7 +104,7 @@ That's 3 tasks. Still manageable.
 If the end is not after the start, Ted says so and shows a format that works:
 
 ```
-That event is over before it begins. Make /to later than /from. Try: event project meeting /from 22/9/2026 1400 /to 22/9/2026 1600
+Even a bear knows the end comes after the start. Make /to later than /from. Try: event project meeting /from 22/9/2026 1400 /to 22/9/2026 1600
 ```
 
 Ted will not add a task you already have. A task counts as the same if it is the same

@@ -218,7 +218,8 @@ public class Ui {
      */
     public void showMatchingTasks(TaskList tasks, TaskList matches, String keyword) {
         showNumbered(tasks, matches, "Here's what I found:",
-                "Nothing matches \"" + keyword + "\". I even checked under the sofa.");
+                "Nothing matches \"" + keyword + "\". I even checked under the sofa. "
+                        + "Found some snacks, though.");
     }
 
     /**

@@ -201,7 +201,8 @@ public class Parser {
             // Now that the times are real date-times rather than free text, Ted can
             // spot an impossible event before it is stored. An event that ends the
             // moment it starts is almost always a typo in one of the two times.
-            throw new TedException("That event is over before it begins. Make /to later than /from. " + example);
+            throw new TedException("Even a bear knows the end comes after the start. Make /to later than /from. "
+                    + example);
         }
         return new Event(description, start, end);
     }
