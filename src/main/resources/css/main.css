@@ -3,17 +3,31 @@
     -fx-background-color: main-color;
 }
 
-.text-field {
+/* A thin rule separates the conversation from the input box. */
+#inputBar {
     -fx-background-color: white;
+    -fx-border-color: #d5dde5 transparent transparent transparent;
+}
+
+.text-field {
+    -fx-background-color: main-color;
+    -fx-background-radius: 16px;
     -fx-border-color: #c8d0d8;
-    -fx-border-width: 1px;
-    -fx-font: 14px "Arial";
+    -fx-border-radius: 16px;
+    -fx-padding: 7px 12px;
+    -fx-font: 14px "System";
+}
+
+.text-field:focused {
+    -fx-border-color: #4a6fa5;
 }
 
 .button {
     -fx-background-color: #4a6fa5;
+    -fx-background-radius: 16px;
     -fx-text-fill: white;
-    -fx-font: bold 14px "Arial";
+    -fx-padding: 7px 16px;
+    -fx-font: bold 14px "System";
 }
 
 .button:hover {

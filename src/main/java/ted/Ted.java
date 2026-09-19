@@ -41,6 +41,12 @@ public class Ted {
     private boolean isExit = false;
 
     /**
+     * Whether Ted's last message explained a problem rather than confirming
+     * what was done, so that the GUI can make it stand out.
+     */
+    private boolean isError = false;
+
+    /**
      * Creates a Ted that keeps its tasks in the usual place.
      * JavaFX builds the application through a no-argument constructor, so this
      * one exists for the GUI to use.
@@ -101,6 +107,7 @@ public class Ted {
         // The GUI passes its text field on as typed, so stray spaces are removed
         // here, where both front ends meet, rather than in each of them.
         String trimmedInput = input.strip();
+        isError = false;
         if (trimmedInput.isEmpty()) {
             // A stray blank line is not worth a reply.
             return "";
@@ -112,6 +119,7 @@ public class Ted {
         } catch (TedException e) {
             // Every problem Ted can recognize is recoverable, so the message is
             // shown and the conversation continues with the next command.
+            isError = true;
             ui.showError(e.getMessage());
             return ui.flush();
         }
@@ -127,6 +135,7 @@ public class Ted {
         try {
             command.execute(tasks, ui, storage);
         } catch (TedException e) {
+            isError = true;
             ui.showError(e.getMessage());
         }
         return ui.flush();
@@ -139,6 +148,8 @@ public class Ted {
      * @return the greeting to show before the user has typed anything.
      */
     public String getGreeting() {
+        // A greeting that warns about the save file needs the user's attention as much as any error.
+        isError = loadErrorMessage != null || storage.getSkippedLineCount() > 0;
         ui.showWelcome();
         if (loadErrorMessage != null) {
             ui.showLoadingError(loadErrorMessage);
@@ -158,6 +169,16 @@ public class Ted {
      */
     public boolean isExit() {
         return isExit;
+    }
+
+    /**
+     * Returns whether Ted's last message, the greeting or a reply, explained
+     * a problem. The GUI uses this to show such messages differently.
+     *
+     * @return {@code true} if the last message reported an error or a warning.
+     */
+    public boolean isError() {
+        return isError;
     }
 
     /**
