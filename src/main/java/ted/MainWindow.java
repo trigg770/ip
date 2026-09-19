@@ -37,10 +37,17 @@ public class MainWindow extends AnchorPane {
     /** The chatbot answering in this window, supplied by {@link #setTed(Ted)}. */
     private Ted ted;
 
-    /** Keeps the newest message in view as the conversation grows. */
+    /**
+     * Keeps the newest message in view as the conversation grows.
+     * <p>
+     * The scroll position is moved by a listener rather than bound to the
+     * conversation's height: a bound position cannot be changed by anything
+     * else, which would stop the user scrolling back up to read earlier replies.
+     */
     @FXML
     public void initialize() {
-        scrollPane.vvalueProperty().bind(dialogContainer.heightProperty());
+        dialogContainer.heightProperty().addListener((observable, oldHeight, newHeight) ->
+                scrollPane.setVvalue(scrollPane.getVmax()));
     }
 
     /**
