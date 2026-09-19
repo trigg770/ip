@@ -28,6 +28,6 @@ public class FindByTagCommand extends Command {
     /** Shows the tasks with the tag. Nothing is changed, so nothing is saved. */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) {
-        ui.showMatchingTasks(tasks.findByTag(tag), tag.toString());
+        ui.showMatchingTasks(tasks, tasks.findByTag(tag), tag.toString());
     }
 }

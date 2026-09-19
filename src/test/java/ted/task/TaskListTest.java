@@ -238,4 +238,17 @@ public class TaskListTest {
         assertFalse(tasks.hasDuplicateOf(new Todo("return book")));
         assertFalse(new TaskList().hasDuplicateOf(new Todo("read book")));
     }
+
+    /**
+     * Verifies that each task gets its own number, even when two tasks look
+     * the same.
+     */
+    @Test
+    public void getNumberOf_lookalikeTasks_eachHasItsOwnNumber() {
+        Todo first = new Todo("water plants");
+        Todo second = new Todo("water plants");
+        TaskList tasks = new TaskList(List.of(new Todo("buy milk"), first, second));
+        assertEquals(2, tasks.getNumberOf(first));
+        assertEquals(3, tasks.getNumberOf(second));
+    }
 }

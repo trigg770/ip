@@ -127,6 +127,21 @@ public class TaskList {
     }
 
     /**
+     * Returns the number the user sees next to a task in the full list.
+     * Tasks are matched by identity rather than by their details, so that
+     * two tasks that look alike still get their own numbers.
+     *
+     * @param task a task held by this list.
+     * @return the task's position, counting from 1.
+     */
+    public int getNumberOf(Task task) {
+        // Task does not override equals, so indexOf compares identities.
+        int index = tasks.indexOf(task);
+        assert index >= 0 : "callers only ask about tasks taken from this list";
+        return index + 1;
+    }
+
+    /**
      * Returns the tasks as a plain list, for code that only needs to read them.
      *
      * @return an unmodifiable copy of the tasks, in order, which later
