@@ -151,6 +151,45 @@ public class TedTest {
     }
 
     /**
+     * Verifies that only a reply explaining a problem is flagged as an error,
+     * so that the GUI highlights mistakes and nothing else.
+     *
+     * @param tempDir The temporary directory for the save file.
+     */
+    @Test
+    public void isError_mistakeThenValidCommand_onlyMistakeFlagged(@TempDir Path tempDir) {
+        Ted ted = new Ted(tempDir.resolve("ted.txt").toString());
+        assertFalse(ted.isError());
+
+        ted.getResponse("mark 1");
+        assertTrue(ted.isError());
+
+        ted.getResponse("todo read book");
+        assertFalse(ted.isError());
+    }
+
+    /**
+     * Verifies that a greeting warning about the save file is flagged, while
+     * an ordinary greeting is not.
+     *
+     * @param tempDir The temporary directory for the save file.
+     * @throws IOException If the test save file cannot be written.
+     */
+    @Test
+    public void isError_greetingWithAndWithoutWarning_flaggedOnlyWithWarning(@TempDir Path tempDir)
+            throws IOException {
+        Ted ted = new Ted(tempDir.resolve("clean.txt").toString());
+        ted.getGreeting();
+        assertFalse(ted.isError());
+
+        Path corruptedFile = tempDir.resolve("corrupted.txt");
+        Files.write(corruptedFile, List.of("not a task"));
+        Ted warnedTed = new Ted(corruptedFile.toString());
+        warnedTed.getGreeting();
+        assertTrue(warnedTed.isError());
+    }
+
+    /**
      * Verifies that a folder where the save file should be is reported in the
      * greeting, and Ted starts with an empty list instead of failing.
      *
