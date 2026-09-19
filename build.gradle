@@ -80,6 +80,11 @@ jar {
 
 shadowJar {
     archiveFileName = 'ted.jar'
+    manifest {
+        // JavaFX loads native libraries, which Java 25 warns about unless the JAR allows it. The warning
+        // lines look like errors to someone just starting Ted, so the JAR declares the access up front.
+        attributes 'Enable-Native-Access': 'ALL-UNNAMED'
+    }
 }
 
 run {
