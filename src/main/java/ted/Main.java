@@ -24,6 +24,13 @@ public class Main extends Application {
     private final Ted ted = new Ted();
 
     /**
+     * Creates the application. JavaFX calls this itself, before
+     * {@link #start(Stage)}, which is why it must be public and take no arguments.
+     */
+    public Main() {
+    }
+
+    /**
      * Loads Ted's main window, connects it to the chatbot, and displays it.
      * If the window cannot be loaded, reports the error to standard error and
      * closes the app.

@@ -13,6 +13,10 @@ import javafx.application.Application;
  * JavaFX tutorial (https://se-education.org/guides/tutorials/javaFx.html).
  */
 public class Launcher {
+    /** Launcher is used only through {@link #main(String[])}, so it is never created. */
+    private Launcher() {
+    }
+
     /**
      * Starts Ted's GUI.
      *

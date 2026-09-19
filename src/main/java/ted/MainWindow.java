@@ -38,6 +38,13 @@ public class MainWindow {
     private Ted ted;
 
     /**
+     * Creates the controller. {@code FXMLLoader} calls this itself when it loads
+     * {@code MainWindow.fxml}, which is why it must be public and take no arguments.
+     */
+    public MainWindow() {
+    }
+
+    /**
      * Keeps the newest message in view as the conversation grows.
      * <p>
      * The scroll position is moved by a listener rather than bound to the
