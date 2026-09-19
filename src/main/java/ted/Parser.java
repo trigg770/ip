@@ -59,7 +59,7 @@ public class Parser {
     /**
      * Reads one line of user input as a command.
      *
-     * @param input full line of text entered by the user, already trimmed.
+     * @param input full line of text entered by the user, not blank.
      * @return the command the user asked for.
      * @throws TedException if the command is unknown or its details are unusable.
      */
@@ -222,8 +222,9 @@ public class Parser {
         String example = "Try: " + commandType.getKeyword() + " 2 #fun";
         requireNotBlank(argument, "Which task, and which tags? " + example);
 
-        // Any run of spaces separates the words, so padding between tags does not matter.
-        String[] words = argument.split("\\s+");
+        // parse() has already collapsed runs of whitespace, so single spaces
+        // separate the task number and each tag.
+        String[] words = argument.split(" ");
         int index = parseTaskIndex(words[0], commandType);
         if (words.length == 1) {
             throw new TedException("Which tags? Start each one with #. " + example);

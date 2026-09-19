@@ -4,9 +4,9 @@ import ted.command.Command;
 import ted.task.TaskList;
 
 /**
- * Entry point of the Ted chatbot.
- * Ted stores todos, deadlines and events, lists the stored tasks on request,
- * and can mark, unmark and delete them, until the user enters {@code bye}.
+ * The core of the Ted chatbot.
+ * Ted stores todos, deadlines and events, and lets the user list, find, mark,
+ * tag and delete them, until the user enters {@code bye}.
  * <p>
  * The same conversation is offered two ways: {@link #run()} drives it from the
  * terminal, while {@link #getResponse(String)} answers one message at a time so
@@ -32,7 +32,7 @@ public class Ted {
 
     /**
      * Why the save file could not be read, or {@code null} if it loaded.
-     * Kept until the greeting so that the warning follows the welcome banner
+     * Kept until the greeting so that the warning follows the welcome message
      * instead of appearing above it.
      */
     private String loadErrorMessage;
@@ -182,11 +182,11 @@ public class Ted {
     }
 
     /**
-     * Starts Ted.
+     * Starts Ted in the terminal. The window is started by {@link Launcher} instead.
      *
      * @param args command-line arguments, which Ted does not use.
      */
     public static void main(String[] args) {
-        new Ted(DATA_FILE_PATH).run();
+        new Ted().run();
     }
 }

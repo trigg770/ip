@@ -9,17 +9,17 @@ import ted.task.Task;
 import ted.task.TaskList;
 
 /**
- * Handles everything Ted says to the user and everything the user types back.
+ * Handles what Ted says to the user, and in the terminal, what the user types
+ * back.
  * <p>
- * Keeping all of the wording in one class means the rest of Ted never calls
- * {@code System.out} directly: the wording of a message can change, or the
- * whole conversation can be moved to a window instead of a terminal, by
- * editing this class alone.
+ * Ted's replies are worded here, and nothing else in Ted calls
+ * {@code System.out} directly, so the same conversation can be shown in a
+ * terminal or in a window. Error messages are the exception: they are written
+ * by the code that detects the problem, since only that code knows what went
+ * wrong, and reach the user through {@link #showError(String)}.
  * <p>
  * Ted speaks as a cheeky teddy bear: he teases the user a little, but every
  * reply still says plainly what happened, and every error says how to fix it.
- * Error messages are written in the same voice by the code that detects the
- * problem, since only that code knows what went wrong.
  * <p>
  * Each {@code show} method adds to the reply being built rather than printing
  * it. {@link #flush()} hands the finished reply back, so the terminal can print
@@ -35,7 +35,7 @@ public class Ui {
      */
     private static final List<LocalTime> FAVORITE_TIMES = List.of(LocalTime.of(4, 20), LocalTime.of(16, 20));
 
-    /** Beyond this many tasks, Ted suggests finishing some before adding more. */
+    /** From this many tasks on, Ted suggests finishing some before adding more. */
     private static final int BUSY_TASK_COUNT = 10;
 
     /** Reads the user's commands from standard input, one line at a time. */
