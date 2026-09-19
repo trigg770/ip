@@ -37,7 +37,7 @@ public class Parser {
     /**
      * Format expected for date-times entered in deadline and event commands.
      * The strict resolver is chosen because the default one quietly rounds an
-     * impossible date down -- 31/2/2019 would otherwise become 28 Feb, giving
+     * impossible date down: 31/2/2019 would otherwise become 28 Feb, giving
      * the user a task on a day they never asked for.
      */
     private static final DateTimeFormatter INPUT_DATE_TIME_FORMAT =

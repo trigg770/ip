@@ -496,8 +496,8 @@ public class ParserTest {
         /**
          * Suppresses removal messages during tests.
          *
-         * @param task The removed task.
-         * @param taskCount The number of remaining tasks.
+         * @param task the removed task.
+         * @param taskCount the number of remaining tasks.
          */
         @Override
         public void showRemoved(Task task, int taskCount) {
@@ -519,7 +519,7 @@ public class ParserTest {
         /**
          * Suppresses writes to the save file during tests.
          *
-         * @param tasks The tasks that would otherwise be saved.
+         * @param tasks the tasks that would otherwise be saved.
          */
         @Override
         public void save(TaskList tasks) {

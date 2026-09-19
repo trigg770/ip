@@ -166,8 +166,8 @@ public abstract class Task {
      * Builds one save line from the fields every task shares and the extra
      * fields this kind of task adds.
      * <p>
-     * The number of extra fields differs per task type -- a todo has none, a
-     * deadline one, an event two -- so they are taken as varargs. Each caller
+     * The number of extra fields differs per task type (a todo has none, a
+     * deadline one, an event two), so they are taken as varargs. Each caller
      * then names its own fields in order and this method alone deals with
      * escaping them and placing the separators.
      * <p>

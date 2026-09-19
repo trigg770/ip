@@ -31,7 +31,7 @@ public class TedTest {
     /**
      * Verifies that a command with leading spaces is recognized.
      *
-     * @param tempDir The temporary directory for the save file.
+     * @param tempDir temporary folder for the save file.
      */
     @Test
     public void getResponse_leadingSpaces_commandRecognized(@TempDir Path tempDir) {
@@ -43,8 +43,8 @@ public class TedTest {
     /**
      * Verifies that a warning about unreadable save data follows the welcome message.
      *
-     * @param tempDir The temporary directory for the save file.
-     * @throws IOException If the test save file cannot be written.
+     * @param tempDir temporary folder for the save file.
+     * @throws IOException if the test save file cannot be written.
      */
     @Test
     public void getGreeting_unreadableSaveLine_warningFollowsWelcome(@TempDir Path tempDir) throws IOException {
@@ -61,8 +61,8 @@ public class TedTest {
      * Verifies that the greeting tells the user where the unreadable save
      * file was copied.
      *
-     * @param tempDir The temporary directory for the save file.
-     * @throws IOException If the test save file cannot be written.
+     * @param tempDir temporary folder for the save file.
+     * @throws IOException if the test save file cannot be written.
      */
     @Test
     public void getGreeting_unreadableSaveLine_mentionsTheCopy(@TempDir Path tempDir) throws IOException {
@@ -77,7 +77,7 @@ public class TedTest {
      * Verifies that tasks added, marked and tagged in one session are all
      * there, unchanged, when Ted is started again on the same file.
      *
-     * @param tempDir The temporary directory for the save file.
+     * @param tempDir temporary folder for the save file.
      */
     @Test
     public void getResponse_conversationThenRestart_tasksRemembered(@TempDir Path tempDir) {
@@ -99,7 +99,7 @@ public class TedTest {
     /**
      * Verifies that blank input gets no reply at all.
      *
-     * @param tempDir The temporary directory for the save file.
+     * @param tempDir temporary folder for the save file.
      */
     @Test
     public void getResponse_blankInput_noReply(@TempDir Path tempDir) {
@@ -110,7 +110,7 @@ public class TedTest {
     /**
      * Verifies that a mistake is explained and the conversation carries on.
      *
-     * @param tempDir The temporary directory for the save file.
+     * @param tempDir temporary folder for the save file.
      */
     @Test
     public void getResponse_unknownCommand_explainedAndConversationContinues(@TempDir Path tempDir) {
@@ -125,7 +125,7 @@ public class TedTest {
      * Verifies that a command that fails while running, such as deleting a
      * task that does not exist, is explained without ending the conversation.
      *
-     * @param tempDir The temporary directory for the save file.
+     * @param tempDir temporary folder for the save file.
      */
     @Test
     public void getResponse_deleteMissingTask_explainedAndConversationContinues(@TempDir Path tempDir) {
@@ -138,7 +138,7 @@ public class TedTest {
     /**
      * Verifies that only bye ends the conversation, and that it gets a goodbye.
      *
-     * @param tempDir The temporary directory for the save file.
+     * @param tempDir temporary folder for the save file.
      */
     @Test
     public void getResponse_bye_goodbyeAndExit(@TempDir Path tempDir) {
@@ -154,7 +154,7 @@ public class TedTest {
      * Verifies that only a reply explaining a problem is flagged as an error,
      * so that the GUI highlights mistakes and nothing else.
      *
-     * @param tempDir The temporary directory for the save file.
+     * @param tempDir temporary folder for the save file.
      */
     @Test
     public void isError_mistakeThenValidCommand_onlyMistakeFlagged(@TempDir Path tempDir) {
@@ -172,8 +172,8 @@ public class TedTest {
      * Verifies that a greeting warning about the save file is flagged, while
      * an ordinary greeting is not.
      *
-     * @param tempDir The temporary directory for the save file.
-     * @throws IOException If the test save file cannot be written.
+     * @param tempDir temporary folder for the save file.
+     * @throws IOException if the test save file cannot be written.
      */
     @Test
     public void isError_greetingWithAndWithoutWarning_flaggedOnlyWithWarning(@TempDir Path tempDir)
@@ -193,8 +193,8 @@ public class TedTest {
      * Verifies that a folder where the save file should be is reported in the
      * greeting, and Ted starts with an empty list instead of failing.
      *
-     * @param tempDir The temporary directory for the save file.
-     * @throws IOException If the test folder cannot be created.
+     * @param tempDir temporary folder for the save file.
+     * @throws IOException if the test folder cannot be created.
      */
     @Test
     public void getGreeting_saveFileIsAFolder_startsWithEmptyList(@TempDir Path tempDir) throws IOException {
@@ -211,7 +211,7 @@ public class TedTest {
      * Verifies that the terminal conversation answers each typed line in
      * turn, skips blank lines, and stops at bye.
      *
-     * @param tempDir The temporary directory for the save file.
+     * @param tempDir temporary folder for the save file.
      */
     @Test
     public void run_typedLines_eachAnsweredUntilBye(@TempDir Path tempDir) {
@@ -229,7 +229,7 @@ public class TedTest {
      * Verifies that the user still gets a goodbye when the input runs out
      * before they say bye, e.g. at the end of a piped file.
      *
-     * @param tempDir The temporary directory for the save file.
+     * @param tempDir temporary folder for the save file.
      */
     @Test
     public void run_inputEndsWithoutBye_stillSaysGoodbye(@TempDir Path tempDir) {
