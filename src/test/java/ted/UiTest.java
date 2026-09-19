@@ -10,10 +10,12 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import ted.task.Deadline;
 import ted.task.TaskList;
 import ted.task.Todo;
 
@@ -174,5 +176,22 @@ public class UiTest {
         } finally {
             System.setIn(originalIn);
         }
+    }
+
+    /**
+     * Verifies that a task set for one of Ted's favorite times, morning or
+     * afternoon, earns a remark, while a task a minute off does not.
+     */
+    @Test
+    public void showAdded_favoriteTime_remarkedOnlyAtThatTime() {
+        Ui ui = new Ui();
+        ui.showAdded(new Deadline("essay", LocalDateTime.of(2026, 9, 25, 16, 20)), 1);
+        assertTrue(ui.flush().contains("4:20, huh?"));
+
+        ui.showAdded(new Deadline("essay", LocalDateTime.of(2026, 9, 25, 4, 20)), 1);
+        assertTrue(ui.flush().contains("4:20, huh?"));
+
+        ui.showAdded(new Deadline("essay", LocalDateTime.of(2026, 9, 25, 16, 21)), 1);
+        assertFalse(ui.flush().contains("4:20"));
     }
 }

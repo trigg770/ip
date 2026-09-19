@@ -1,6 +1,8 @@
 package ted;
 
 import java.nio.file.Path;
+import java.time.LocalTime;
+import java.util.List;
 import java.util.Scanner;
 
 import ted.task.Task;
@@ -26,6 +28,12 @@ import ted.task.TaskList;
 public class Ui {
     /** Horizontal rule framing each of Ted's replies. */
     private static final String DIVIDER = "____________________________________________________________";
+
+    /**
+     * Times of day Ted has a soft spot for, like the teddy bear in the film he
+     * shares a name with. A task set for one of them earns a remark.
+     */
+    private static final List<LocalTime> FAVORITE_TIMES = List.of(LocalTime.of(4, 20), LocalTime.of(16, 20));
 
     /** Beyond this many tasks, Ted suggests finishing some before adding more. */
     private static final int BUSY_TASK_COUNT = 10;
@@ -137,7 +145,8 @@ public class Ui {
     }
 
     /**
-     * Confirms a newly added task.
+     * Confirms a newly added task, with a remark if it is set for one of
+     * Ted's favorite times.
      *
      * @param task      the task that was added.
      * @param taskCount how many tasks are now stored.
@@ -145,6 +154,9 @@ public class Ui {
     public void showAdded(Task task, int taskCount) {
         show("Look at you, being responsible. I've added:",
                 "  " + task);
+        if (FAVORITE_TIMES.stream().anyMatch(task::isAtTimeOfDay)) {
+            show("4:20, huh? Excellent choice of time.");
+        }
         showTaskCount(taskCount);
     }
 

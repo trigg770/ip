@@ -1,6 +1,7 @@
 package ted.task;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 /**
  * A task that must be done before a given point in time,
@@ -34,6 +35,12 @@ public class Deadline extends Task {
     @Override
     public boolean isDuplicateOf(Task other) {
         return super.isDuplicateOf(other) && other instanceof Deadline deadline && by.equals(deadline.by);
+    }
+
+    /** {@inheritDoc} A deadline checks its due time. */
+    @Override
+    public boolean isAtTimeOfDay(LocalTime time) {
+        return by.toLocalTime().equals(time);
     }
 
     /**

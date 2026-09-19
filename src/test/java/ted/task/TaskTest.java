@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Locale;
 
@@ -265,5 +266,24 @@ public class TaskTest {
         } finally {
             Locale.setDefault(originalLocale);
         }
+    }
+
+    /**
+     * Verifies that a task is at a time of day only when one of its own
+     * date-times is, and that a todo, having none, never is.
+     */
+    @Test
+    public void isAtTimeOfDay_eachKindOfTask_checksItsOwnTimes() {
+        LocalTime sixPm = LocalTime.of(18, 0);
+        LocalTime fourPm = LocalTime.of(16, 0);
+
+        assertFalse(new Todo("read book").isAtTimeOfDay(sixPm));
+        assertTrue(new Deadline("return book", SECOND_OF_DECEMBER_6PM).isAtTimeOfDay(sixPm));
+        assertFalse(new Deadline("return book", SECOND_OF_DECEMBER_6PM).isAtTimeOfDay(fourPm));
+
+        Event meeting = new Event("meeting", SECOND_OF_DECEMBER_4PM, SECOND_OF_DECEMBER_6PM);
+        assertTrue(meeting.isAtTimeOfDay(fourPm));
+        assertTrue(meeting.isAtTimeOfDay(sixPm));
+        assertFalse(meeting.isAtTimeOfDay(LocalTime.of(17, 0)));
     }
 }

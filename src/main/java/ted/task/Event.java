@@ -1,6 +1,7 @@
 package ted.task;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 /**
  * A task that runs from one point in time to another,
@@ -40,6 +41,12 @@ public class Event extends Task {
     public boolean isDuplicateOf(Task other) {
         return super.isDuplicateOf(other) && other instanceof Event event
                 && from.equals(event.from) && to.equals(event.to);
+    }
+
+    /** {@inheritDoc} An event checks both its start and its end. */
+    @Override
+    public boolean isAtTimeOfDay(LocalTime time) {
+        return from.toLocalTime().equals(time) || to.toLocalTime().equals(time);
     }
 
     /**

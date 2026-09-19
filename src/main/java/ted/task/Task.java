@@ -1,5 +1,6 @@
 package ted.task;
 
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -134,6 +135,17 @@ public abstract class Task {
      */
     public boolean isDuplicateOf(Task other) {
         return getClass() == other.getClass() && description.equalsIgnoreCase(other.description);
+    }
+
+    /**
+     * Returns whether any of this task's dates falls at the given time of day,
+     * whatever the date. A task with no dates, such as a todo, never does.
+     *
+     * @param time the time of day to look for, e.g. 16:20.
+     * @return {@code true} if one of the task's date-times is at that time.
+     */
+    public boolean isAtTimeOfDay(LocalTime time) {
+        return false;
     }
 
     /**
