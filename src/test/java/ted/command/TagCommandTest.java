@@ -34,7 +34,7 @@ public class TagCommandTest {
 
         new TagCommand(0, List.of(new Tag("fun"), new Tag("school")), true).execute(tasks, ui, storage);
 
-        assertTrue(ui.flush().contains("OK, I've tagged this task:"));
+        assertTrue(ui.flush().contains("I've tagged it:"));
         assertEquals("T | 0 | #fun #school | read book", storage.load().get(0).toSaveFormat());
     }
 
@@ -51,7 +51,7 @@ public class TagCommandTest {
 
         new TagCommand(0, List.of(new Tag("fun")), false).execute(tasks, ui, storage);
 
-        assertTrue(ui.flush().contains("OK, I've untagged this task:"));
+        assertTrue(ui.flush().contains("Tag removed."));
         assertEquals("T | 0 | #school | read book", storage.load().get(0).toSaveFormat());
     }
 }

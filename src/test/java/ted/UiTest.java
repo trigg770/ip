@@ -10,10 +10,12 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import ted.task.Deadline;
 import ted.task.TaskList;
 import ted.task.Todo;
 
@@ -26,17 +28,24 @@ import ted.task.Todo;
  */
 public class UiTest {
     /**
-     * Verifies that the welcome banner keeps the leading space that lines up
-     * the first row of its ASCII art.
+     * Verifies that the greeting introduces Ted by name.
      */
     @Test
-    public void flush_welcome_keepsBannerAligned() {
+    public void showWelcome_greeting_introducesTed() {
         Ui ui = new Ui();
         ui.showWelcome();
-        String greeting = ui.flush();
+        assertTrue(ui.flush().startsWith("Oh good, you're here. I'm Ted"));
+    }
 
-        assertTrue(greeting.startsWith(" _____ _____ ____"));
-        assertTrue(greeting.contains("Hello! I'm Ted."));
+    /**
+     * Verifies that a reply starting with an indented line keeps its indent,
+     * since only trailing whitespace is removed.
+     */
+    @Test
+    public void flush_replyStartingWithSpace_keepsIndent() {
+        Ui ui = new Ui();
+        ui.showError("  indented");
+        assertEquals("  indented", ui.flush());
     }
 
     /**
@@ -48,21 +57,28 @@ public class UiTest {
         Ui ui = new Ui();
         ui.showGoodbye();
 
-        assertEquals("Bye. Hope to see you again soon!", ui.flush());
+        assertEquals("Leaving already? Fine. I'll be here on the shelf. Bye!", ui.flush());
         assertEquals("", ui.flush());
     }
 
     /**
-     * Verifies that the task count reads naturally for one task and for several.
+     * Verifies that the task count comes with a remark that suits the size of
+     * the list, from empty to busy.
      */
     @Test
-    public void showAdded_taskCount_singularOrPlural() {
+    public void showAddedOrRemoved_taskCount_remarkSuitsCount() {
         Ui ui = new Ui();
-        ui.showAdded(new Todo("borrow book"), 1);
-        assertTrue(ui.flush().contains("Now you have 1 task in the list."));
+        ui.showRemoved(new Todo("borrow book"), 0);
+        assertTrue(ui.flush().contains("Your list is empty now."));
 
-        ui.showRemoved(new Todo("borrow book"), 2);
-        assertTrue(ui.flush().contains("Now you have 2 tasks in the list."));
+        ui.showAdded(new Todo("borrow book"), 1);
+        assertTrue(ui.flush().contains("That's 1 task. A small start, but a start."));
+
+        ui.showAdded(new Todo("borrow book"), 2);
+        assertTrue(ui.flush().contains("That's 2 tasks. Still manageable."));
+
+        ui.showAdded(new Todo("borrow book"), 10);
+        assertTrue(ui.flush().contains("That's 10 tasks. Maybe finish a few before adding more?"));
     }
 
     /**
@@ -72,10 +88,10 @@ public class UiTest {
     public void showSkippedLines_count_singularOrPlural() {
         Ui ui = new Ui();
         ui.showSkippedLines(1);
-        assertEquals("Skipped 1 unreadable line in your save file.", ui.flush());
+        assertTrue(ui.flush().endsWith("so I skipped 1 line."));
 
         ui.showSkippedLines(3);
-        assertEquals("Skipped 3 unreadable lines in your save file.", ui.flush());
+        assertTrue(ui.flush().endsWith("so I skipped 3 lines."));
     }
 
     /**
@@ -85,7 +101,7 @@ public class UiTest {
     public void showTasks_emptyList_saysSo() {
         Ui ui = new Ui();
         ui.showTasks(new TaskList());
-        assertEquals("You have no tasks yet.", ui.flush());
+        assertTrue(ui.flush().startsWith("Your list is empty."));
     }
 
     /**
@@ -101,7 +117,7 @@ public class UiTest {
         assertTrue(ui.flush().contains("2.[T][ ] read book"));
 
         ui.showMatchingTasks(tasks, tasks.find("bicycle"), "bicycle");
-        assertEquals("No task matches \"bicycle\".", ui.flush());
+        assertTrue(ui.flush().startsWith("Nothing matches \"bicycle\"."));
     }
 
     /**
@@ -116,7 +132,7 @@ public class UiTest {
         String reply = ui.flush();
 
         assertTrue(reply.startsWith("I couldn't read your saved tasks."));
-        assertTrue(reply.contains("Starting with an empty list for now."));
+        assertTrue(reply.contains("I'll start you on an empty list for now."));
         assertTrue(reply.contains(Path.of("data", "ted.txt.bak").toString()));
     }
 
@@ -160,5 +176,22 @@ public class UiTest {
         } finally {
             System.setIn(originalIn);
         }
+    }
+
+    /**
+     * Verifies that a task set for one of Ted's favorite times, morning or
+     * afternoon, earns a remark, while a task a minute off does not.
+     */
+    @Test
+    public void showAdded_favoriteTime_remarkedOnlyAtThatTime() {
+        Ui ui = new Ui();
+        ui.showAdded(new Deadline("essay", LocalDateTime.of(2026, 9, 25, 16, 20)), 1);
+        assertTrue(ui.flush().contains("4:20, huh?"));
+
+        ui.showAdded(new Deadline("essay", LocalDateTime.of(2026, 9, 25, 4, 20)), 1);
+        assertTrue(ui.flush().contains("4:20, huh?"));
+
+        ui.showAdded(new Deadline("essay", LocalDateTime.of(2026, 9, 25, 16, 21)), 1);
+        assertFalse(ui.flush().contains("4:20"));
     }
 }

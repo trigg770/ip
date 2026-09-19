@@ -28,7 +28,7 @@ public class ListCommandTest {
         new ListCommand().execute(tasks, ui, new Storage(tempDir.resolve("ted.txt").toString()));
 
         String expected = String.join(System.lineSeparator(),
-                "Here are the tasks in your list:",
+                "Here's everything you said you'd do:",
                 "1.[T][ ] borrow book",
                 "2.[T][ ] read book");
         assertEquals(expected, ui.flush());

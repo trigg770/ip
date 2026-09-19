@@ -51,7 +51,7 @@ public class MarkCommandTest {
 
         MarkCommand markAgain = new MarkCommand(0, true);
         TedException e = assertThrows(TedException.class, () -> markAgain.execute(tasks, new Ui(), storage));
-        assertTrue(e.getMessage().contains("already marked as done"));
+        assertTrue(e.getMessage().contains("Task 1 is already done."));
     }
 
     /**
@@ -65,6 +65,6 @@ public class MarkCommandTest {
 
         MarkCommand unmarkAgain = new MarkCommand(0, false);
         TedException e = assertThrows(TedException.class, () -> unmarkAgain.execute(tasks, new Ui(), storage));
-        assertTrue(e.getMessage().contains("already marked as not done"));
+        assertTrue(e.getMessage().contains("Task 1 isn't done yet"));
     }
 }

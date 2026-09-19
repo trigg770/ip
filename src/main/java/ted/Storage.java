@@ -99,7 +99,7 @@ public class Storage {
                     .toList();
             Files.write(dataFile, lines);
         } catch (IOException e) {
-            throw new TedException("I couldn't save your tasks to " + dataFile + ": " + describe(e) + ".");
+            throw new TedException("Uh oh. I couldn't save your tasks to " + dataFile + ": " + describe(e) + ".");
         }
     }
 

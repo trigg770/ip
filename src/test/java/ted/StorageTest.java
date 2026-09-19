@@ -405,6 +405,6 @@ public class StorageTest {
         Storage storage = new Storage(dataFile.toString());
 
         TedException e = assertThrows(TedException.class, () -> storage.save(new TaskList()));
-        assertTrue(e.getMessage().startsWith("I couldn't save your tasks to " + dataFile + ": "));
+        assertTrue(e.getMessage().contains("I couldn't save your tasks to " + dataFile + ": "));
     }
 }

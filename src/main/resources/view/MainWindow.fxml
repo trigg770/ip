@@ -30,7 +30,7 @@
     <bottom>
         <HBox fx:id="inputBar" spacing="8.0">
             <children>
-                <TextField fx:id="userInput" onAction="#handleUserInput" promptText="Type a command..."
+                <TextField fx:id="userInput" onAction="#handleUserInput" promptText="Tell Ted what to do..."
                            HBox.hgrow="ALWAYS" />
                 <Button fx:id="sendButton" defaultButton="false" mnemonicParsing="false"
                         onAction="#handleUserInput" text="Send" />

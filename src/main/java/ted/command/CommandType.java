@@ -77,8 +77,8 @@ public enum CommandType {
         return Arrays.stream(values())
                 .filter(command -> command.keyword.equalsIgnoreCase(keyword))
                 .findFirst()
-                .orElseThrow(() -> new TedException("I don't recognize \"" + keyword + "\". "
-                        + "I understand: " + listKeywords() + "."));
+                .orElseThrow(() -> new TedException("\"" + keyword + "\"? Never heard of it. "
+                        + "Here's what I can do: " + listKeywords() + "."));
     }
 
     /**

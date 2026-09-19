@@ -36,7 +36,8 @@ public class AddCommand extends Command {
     public void execute(TaskList tasks, Ui ui, Storage storage) throws TedException {
         if (tasks.hasDuplicateOf(task)) {
             // A second copy would leave the user unsure which one to mark or delete.
-            throw new TedException("You already have this task, so I didn't add it again: " + task);
+            throw new TedException("This feels familiar. You already have this task, so I didn't add it again: "
+                    + task);
         }
 
         tasks.add(task);

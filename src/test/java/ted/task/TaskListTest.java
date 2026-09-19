@@ -66,8 +66,20 @@ public class TaskListTest {
         TaskList tasks = new TaskList(List.of(new Todo("only task")));
         TedException e = assertThrows(TedException.class, () -> tasks.get(1));
         // The message speaks in the 1-based numbers the user sees.
-        assertTrue(e.getMessage().contains("task numbered 2"));
-        assertTrue(e.getMessage().contains("between 1 and 1"));
+        assertTrue(e.getMessage().contains("There's no task 2"));
+        assertTrue(e.getMessage().contains("the only number that works is 1"));
+    }
+
+    /**
+     * Verifies that an index past the end of a longer list names the range of
+     * numbers that do work.
+     */
+    @Test
+    public void get_indexPastEndOfSeveral_rangeGiven() {
+        TaskList tasks = new TaskList(List.of(new Todo("first"), new Todo("second"), new Todo("third")));
+        TedException e = assertThrows(TedException.class, () -> tasks.get(8));
+        assertTrue(e.getMessage().contains("There's no task 9"));
+        assertTrue(e.getMessage().contains("pick a number from 1 to 3"));
     }
 
     /**

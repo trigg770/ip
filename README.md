@@ -1,6 +1,6 @@
 # Ted
 
-Ted is a chatbot that keeps track of your todos, deadlines and events. Given below are instructions on how to set it up.
+Ted is a cheeky teddy bear chatbot that keeps track of your todos, deadlines and events. Given below are instructions on how to set it up.
 
 ## Setting up in Intellij
 
@@ -15,11 +15,10 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    In the same dialog, set the **Project language level** field to the `SDK default` option.
 1. After that, locate the `src/main/java/ted/Ted.java` file, right-click it, and choose `Run Ted.main()` (if the code editor is showing compile errors, try restarting the IDE). If the setup is correct, you should see something like the below as the output:
    ```
-    _____ _____ ____  
-   |_   _| ____|  _ \ 
-     | | |  _| | | | |
-     | | | |___| |_| |
-     |_| |_____|____/ 
+   ____________________________________________________________
+   Oh good, you're here. I'm Ted: professional teddy bear, part-time life coach.
+   What do you need to get done today?
+   ____________________________________________________________
    ```
 1. To open Ted's window instead, run `src/main/java/ted/Launcher.java` the same way, or run `./gradlew run` from the project folder.
 

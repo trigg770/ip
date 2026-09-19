@@ -38,7 +38,7 @@ public class AddCommandTest {
         assertEquals(1, tasks.size());
         String reply = ui.flush();
         assertTrue(reply.contains("[T][ ] borrow book"));
-        assertTrue(reply.contains("Now you have 1 task in the list."));
+        assertTrue(reply.contains("That's 1 task."));
         assertEquals(1, storage.load().size());
     }
 

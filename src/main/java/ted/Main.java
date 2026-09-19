@@ -7,6 +7,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 /**
@@ -36,6 +37,9 @@ public class Main extends Application {
             Parent root = fxmlLoader.load();
             stage.setScene(new Scene(root));
             stage.setTitle("Ted");
+            // Ted's picture sits beside the window title, and in the task bar
+            // on systems that have one, so the window is easy to pick out.
+            stage.getIcons().add(new Image(Main.class.getResourceAsStream("/images/DaTed.png")));
             // The layout stretches to any size, but below these the window has
             // room for too little of the conversation to be useful.
             stage.setMinHeight(300);
