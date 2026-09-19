@@ -5,10 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -351,5 +354,57 @@ public class StorageTest {
 
         assertEquals(1, loadedTasks.size());
         assertEquals(1, storage.getSkippedLineCount());
+    }
+
+    /**
+     * Verifies that a save file Ted is not allowed to read is reported in
+     * plain words. Skipped where the file system has no POSIX permissions,
+     * e.g. on Windows.
+     */
+    @Test
+    public void load_fileNotReadable_permissionDeniedReported(@TempDir Path tempDir) throws IOException {
+        assumeTrue(FileSystems.getDefault().supportedFileAttributeViews().contains("posix"));
+        Path dataFile = tempDir.resolve("ted.txt");
+        Files.writeString(dataFile, "T | 0 | borrow book\n");
+        Files.setPosixFilePermissions(dataFile, PosixFilePermissions.fromString("-w-------"));
+        // A user who can read anything, such as root, would not be denied at all.
+        assumeTrue(!Files.isReadable(dataFile));
+
+        Storage storage = new Storage(dataFile.toString());
+        TedException e = assertThrows(TedException.class, storage::load);
+
+        assertTrue(e.getMessage().contains("permission denied"));
+        // The copy needs to read the file too, so none can be promised.
+        assertTrue(storage.getBackupFile().isEmpty());
+    }
+
+    /**
+     * Verifies that when the copy of an unreadable file cannot be made, the
+     * tasks still load and no copy is promised.
+     */
+    @Test
+    public void load_copyCannotBeMade_noCopyPromised(@TempDir Path tempDir) throws TedException, IOException {
+        Path dataFile = tempDir.resolve("ted.txt");
+        Files.writeString(dataFile, "T | 0 | borrow book\ngibberish\n");
+        // A folder with something inside cannot be replaced by the copy.
+        Path blockingFolder = Files.createDirectory(tempDir.resolve("ted.txt.bak"));
+        Files.writeString(blockingFolder.resolve("keep.txt"), "in the way");
+
+        Storage storage = new Storage(dataFile.toString());
+        assertEquals(1, storage.load().size());
+        assertTrue(storage.getBackupFile().isEmpty());
+    }
+
+    /**
+     * Verifies that saving onto a folder is reported as a failed save, naming
+     * the file, rather than crashing.
+     */
+    @Test
+    public void save_dataFileIsAFolder_exceptionThrown(@TempDir Path tempDir) throws IOException {
+        Path dataFile = Files.createDirectory(tempDir.resolve("ted.txt"));
+        Storage storage = new Storage(dataFile.toString());
+
+        TedException e = assertThrows(TedException.class, () -> storage.save(new TaskList()));
+        assertTrue(e.getMessage().startsWith("I couldn't save your tasks to " + dataFile + ": "));
     }
 }
