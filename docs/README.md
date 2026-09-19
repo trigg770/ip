@@ -2,6 +2,9 @@
 
 ![Ted's window, showing a task list and a few commands](Ui.png)
 
+*Ted's picture is [Teddy Bear](https://openclipart.org/detail/2694) by Machovka, from Openclipart,
+released into the public domain.*
+
 Ted is a cheeky teddy bear who keeps track of your todos, deadlines and events. You type
 a short command and Ted replies, so managing your tasks is as quick as sending a message.
 He will tease you a little along the way, but he always gets the job done, and he saves
