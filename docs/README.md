@@ -2,9 +2,10 @@
 
 ![Ted's window, showing a task list and a few commands](Ui.png)
 
-Ted is a chatbot that keeps track of your todos, deadlines and events. You type a
-short command, and Ted replies, so managing your tasks is as quick as sending a message.
-Ted saves your tasks after every change, so they are still there next time you open it.
+Ted is a cheeky teddy bear who keeps track of your todos, deadlines and events. You type
+a short command and Ted replies, so managing your tasks is as quick as sending a message.
+He will tease you a little along the way, but he always gets the job done, and he saves
+your tasks after every change so they are still there next time.
 
 * [Quick start](#quick-start)
 * [Features](#features)
@@ -43,8 +44,8 @@ Ted saves your tasks after every change, so they are still there next time you o
   e.g. `25/9/2026 1800` for 25 September 2026 at 6 pm.
 * Command words can be typed in any case: `list`, `List` and `LIST` all work.
 * Extra spaces between words are ignored.
-* If Ted cannot follow a command, it replies in red, explains what went wrong, and shows
-  an example of the right format. Nothing in your list changes.
+* If Ted cannot follow a command, his reply turns red, explains what went wrong, and ends
+  with `Try:` and an example that works. Nothing in your list changes.
 
 Each task is shown with two boxes in front of it:
 
@@ -65,9 +66,9 @@ Format: `todo DESCRIPTION`
 Example: `todo borrow book`
 
 ```
-Got it. I've added this task:
+Look at you, being responsible. I've added:
   [T][ ] borrow book
-Now you have 1 task in the list.
+That's 1 task. A small start, but a start.
 ```
 
 ### Adding a deadline: `deadline`
@@ -79,9 +80,9 @@ Format: `deadline DESCRIPTION /by DATE TIME`
 Example: `deadline return book /by 25/9/2026 1800`
 
 ```
-Got it. I've added this task:
+Look at you, being responsible. I've added:
   [D][ ] return book (by: 25 Sep 2026, 6:00 PM)
-Now you have 2 tasks in the list.
+That's 2 tasks. Still manageable.
 ```
 
 ### Adding an event: `event`
@@ -95,9 +96,15 @@ Format: `event DESCRIPTION /from DATE TIME /to DATE TIME`
 Example: `event project meeting /from 22/9/2026 1400 /to 22/9/2026 1600`
 
 ```
-Got it. I've added this task:
+Look at you, being responsible. I've added:
   [E][ ] project meeting (from: 22 Sep 2026, 2:00 PM to: 22 Sep 2026, 4:00 PM)
-Now you have 3 tasks in the list.
+That's 3 tasks. Still manageable.
+```
+
+If the end is not after the start, Ted says so and shows a format that works:
+
+```
+That event is over before it begins. Make /to later than /from. Try: event project meeting /from 22/9/2026 1400 /to 22/9/2026 1600
 ```
 
 Ted will not add a task you already have. A task counts as the same if it is the same
@@ -110,7 +117,7 @@ Shows every task, numbered in the order you added them.
 Format: `list`
 
 ```
-Here are the tasks in your list:
+Here's everything you said you'd do:
 1.[T][ ] borrow book
 2.[D][ ] return book (by: 25 Sep 2026, 6:00 PM)
 3.[E][ ] project meeting (from: 22 Sep 2026, 2:00 PM to: 22 Sep 2026, 4:00 PM)
@@ -125,13 +132,13 @@ Format: `mark INDEX` or `unmark INDEX`
 Example: `mark 1`
 
 ```
-Nice! I've marked this task as done:
+You actually did it? I'm impressed. Marked as done:
   [T][X] borrow book
 ```
 
 ### Deleting a task: `delete`
 
-Removes a task from the list for good. Ted shows the task it removed, so you can check it
+Removes a task from the list for good. Ted shows the task he removed, so you can check it
 was the one you meant.
 
 Format: `delete INDEX`
@@ -139,9 +146,9 @@ Format: `delete INDEX`
 Example: `delete 3`
 
 ```
-Noted. I've removed this task:
+Gone, just like that. I've removed:
   [E][ ] project meeting (from: 22 Sep 2026, 2:00 PM to: 22 Sep 2026, 4:00 PM)
-Now you have 2 tasks in the list.
+That's 2 tasks. Still manageable.
 ```
 
 The tasks after it move up by one, so run `list` again before using another number.
@@ -160,7 +167,7 @@ Format: `find KEYWORD`
 Example: `find book`
 
 ```
-Here are the matching tasks in your list:
+Here's what I found:
 1.[T][ ] borrow book
 2.[D][ ] return book #library (by: 25 Sep 2026, 6:00 PM)
 ```
@@ -180,7 +187,7 @@ Format: `tag INDEX #TAG [#TAG]...` or `untag INDEX #TAG [#TAG]...`
 Example: `tag 2 #library #urgent`
 
 ```
-OK, I've tagged this task:
+Fancy. I've tagged it:
   [D][ ] return book #library #urgent (by: 25 Sep 2026, 6:00 PM)
 ```
 
@@ -195,7 +202,7 @@ Format: `find #TAG`
 Example: `find #library`
 
 ```
-Here are the matching tasks in your list:
+Here's what I found:
 2.[D][ ] return book #library (by: 25 Sep 2026, 6:00 PM)
 ```
 
@@ -205,13 +212,17 @@ Says goodbye and closes the window a moment later. You can also just close the w
 
 Format: `bye`
 
+```
+Leaving already? Fine. I'll be here on the shelf. Bye!
+```
+
 ## Saving your tasks
 
 Ted saves your tasks after every change, to `data/ted.txt` inside the folder you started
 Ted from. There is no save command.
 
-You can edit `data/ted.txt` in a text editor, but be careful. If Ted finds a line it
-cannot read when it starts, it skips that line, tells you how many it skipped, and keeps
+You can edit `data/ted.txt` in a text editor, but be careful. If Ted finds a line he
+cannot read when he starts, he skips that line, tells you how many he skipped, and keeps
 a copy of the original file as `data/ted.txt.bak`. That way, nothing is lost when Ted next
 saves.
 
