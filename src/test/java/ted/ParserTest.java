@@ -340,7 +340,7 @@ public class ParserTest {
         String twoEnds = "event meeting /from 2/12/2019 1400 /to 2/12/2019 1500 /to 2/12/2019 1600";
 
         TedException e = assertThrows(TedException.class, () -> Parser.parse(twoDueTimes));
-        assertTrue(e.getMessage().contains("/by only once"));
+        assertTrue(e.getMessage().contains("You gave me /by twice"));
         assertThrows(TedException.class, () -> Parser.parse(twoStarts));
         assertThrows(TedException.class, () -> Parser.parse(twoEnds));
     }

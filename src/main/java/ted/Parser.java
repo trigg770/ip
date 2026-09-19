@@ -111,7 +111,7 @@ public class Parser {
     private static Command parseFind(String argument) throws TedException {
         String keyword = parseKeyword(argument);
         if (keyword.startsWith(Tag.PREFIX)) {
-            return new FindByTagCommand(parseTag(keyword, "for example: find #fun"));
+            return new FindByTagCommand(parseTag(keyword, "Try: find #fun"));
         }
         return new FindCommand(keyword);
     }
@@ -124,7 +124,7 @@ public class Parser {
      * @throws TedException if no keyword was given.
      */
     private static String parseKeyword(String argument) throws TedException {
-        requireNotBlank(argument, "What should I look for? for example: find book");
+        requireNotBlank(argument, "Find what, exactly? Give me a word to look for. Try: find book");
         return argument;
     }
 
@@ -136,7 +136,7 @@ public class Parser {
      * @throws TedException if the description is missing.
      */
     private static Todo parseTodo(String description) throws TedException {
-        requireNotBlank(description, "A todo needs a description, for example: todo borrow book");
+        requireNotBlank(description, "A todo about nothing? Tell me what it is. Try: todo borrow book");
         return new Todo(description);
     }
 
@@ -150,18 +150,18 @@ public class Parser {
      *                      repeated or unreadable.
      */
     private static Deadline parseDeadline(String argument) throws TedException {
-        String example = "for example: deadline return book /by 2/12/2019 1800";
-        requireNotBlank(argument, "A deadline needs a description and a due time, " + example);
+        String example = "Try: deadline return book /by 25/9/2026 1800";
+        requireNotBlank(argument, "A deadline needs a task and a due time. " + example);
 
         int separator = findOption(argument, OPTION_BY, example);
         if (separator == -1) {
-            throw new TedException("I need to know when this is due. Use /by, " + example);
+            throw new TedException("When is it due? Add /by and a date and time. " + example);
         }
 
         String description = argument.substring(0, separator).trim();
         String by = argument.substring(separator + OPTION_BY.length()).trim();
-        requireNotBlank(description, "A deadline needs a description before /by, " + example);
-        requireNotBlank(by, "A deadline needs a due time after /by, " + example);
+        requireNotBlank(description, "Due by then, sure, but what is? Put the task before /by. " + example);
+        requireNotBlank(by, "Due when? Put a date and time after /by. " + example);
         return new Deadline(description, parseDateTime(by, example));
     }
 
@@ -176,24 +176,24 @@ public class Parser {
      *                      after it starts.
      */
     private static Event parseEvent(String argument) throws TedException {
-        String example = "for example: event project meeting /from 2/12/2019 1400 /to 2/12/2019 1600";
-        requireNotBlank(argument, "An event needs a description, a start and an end, " + example);
+        String example = "Try: event project meeting /from 22/9/2026 1400 /to 22/9/2026 1600";
+        requireNotBlank(argument, "An event needs a name, a start and an end. " + example);
 
         int fromSeparator = findOption(argument, OPTION_FROM, example);
         int toSeparator = findOption(argument, OPTION_TO, example);
         if (fromSeparator == -1 || toSeparator == -1) {
-            throw new TedException("An event needs both /from and /to, " + example);
+            throw new TedException("An event needs a start and an end, so use both /from and /to. " + example);
         }
         if (toSeparator < fromSeparator) {
-            throw new TedException("Please put /from before /to, " + example);
+            throw new TedException("Other way round, buddy: /from goes before /to. " + example);
         }
 
         String description = argument.substring(0, fromSeparator).trim();
         String from = argument.substring(fromSeparator + OPTION_FROM.length(), toSeparator).trim();
         String to = argument.substring(toSeparator + OPTION_TO.length()).trim();
-        requireNotBlank(description, "An event needs a description before /from, " + example);
-        requireNotBlank(from, "An event needs a start time after /from, " + example);
-        requireNotBlank(to, "An event needs an end time after /to, " + example);
+        requireNotBlank(description, "What is the event called? Put its name before /from. " + example);
+        requireNotBlank(from, "Starts when? Put a date and time after /from. " + example);
+        requireNotBlank(to, "Ends when? Put a date and time after /to. " + example);
 
         LocalDateTime start = parseDateTime(from, example);
         LocalDateTime end = parseDateTime(to, example);
@@ -201,7 +201,7 @@ public class Parser {
             // Now that the times are real date-times rather than free text, Ted can
             // spot an impossible event before it is stored. An event that ends the
             // moment it starts is almost always a typo in one of the two times.
-            throw new TedException("An event must end after it starts, " + example);
+            throw new TedException("That event is over before it begins. Make /to later than /from. " + example);
         }
         return new Event(description, start, end);
     }
@@ -218,14 +218,14 @@ public class Parser {
      */
     private static TagCommand parseTagCommand(String argument, CommandType commandType, boolean isAdding)
             throws TedException {
-        String example = "for example: " + commandType.getKeyword() + " 2 #fun";
+        String example = "Try: " + commandType.getKeyword() + " 2 #fun";
         requireNotBlank(argument, "Which task, and which tags? " + example);
 
         // Any run of spaces separates the words, so padding between tags does not matter.
         String[] words = argument.split("\\s+");
         int index = parseTaskIndex(words[0], commandType);
         if (words.length == 1) {
-            throw new TedException("Which tags? Start each one with #, " + example);
+            throw new TedException("Which tags? Start each one with #. " + example);
         }
 
         // A loop rather than a stream, because parseTag throws a checked
@@ -249,10 +249,10 @@ public class Parser {
      *                      followed by more numbers.
      */
     private static int parseTaskIndex(String argument, CommandType commandType) throws TedException {
-        String example = "for example: " + commandType.getKeyword() + " 2";
-        requireNotBlank(argument, "Which task? Give me its number, " + example);
+        String example = "Try: " + commandType.getKeyword() + " 2";
+        requireNotBlank(argument, "Which task? Give me its number. " + example);
         if (argument.contains(" ")) {
-            throw new TedException("One task at a time, please. Give me a single task number, " + example);
+            throw new TedException("One task at a time, buddy. Give me a single number. " + example);
         }
 
         try {
@@ -260,7 +260,8 @@ public class Parser {
             return Integer.parseInt(argument) - 1;
         } catch (NumberFormatException e) {
             // Rethrown as a TedException so the main loop handles every failure the same way.
-            throw new TedException("\"" + argument + "\" is not a task number, " + example);
+            throw new TedException("\"" + argument + "\" is not a task number. "
+                    + "Use the number shown by list. " + example);
         }
     }
 
@@ -283,10 +284,10 @@ public class Parser {
                 // The formatter attaches a cause only when the text has the right
                 // shape but names a date or time that does not exist, e.g. 30/2/2019.
                 throw new TedException("\"" + text + "\" is not a real date and time. "
-                        + "Please check the day, month and time, " + example);
+                        + "Check the day, month and time. " + example);
             }
             throw new TedException("I can't read \"" + text + "\" as a date and time. "
-                    + "Please use d/M/yyyy HHmm, " + example);
+                    + "Write it as d/M/yyyy HHmm. " + example);
         }
     }
 
@@ -301,7 +302,7 @@ public class Parser {
     private static Tag parseTag(String text, String example) throws TedException {
         if (!Tag.isValidText(text)) {
             throw new TedException("\"" + text + "\" is not a tag. "
-                    + "A tag is # followed by letters and digits, " + example);
+                    + "A tag is # followed by letters and digits. " + example);
         }
         return Tag.fromText(text);
     }
@@ -328,7 +329,7 @@ public class Parser {
         int start = matcher.start();
         if (matcher.find()) {
             // With two of them there is no telling which one the user meant.
-            throw new TedException("Please give " + option + " only once, " + example);
+            throw new TedException("You gave me " + option + " twice, so I can't tell which one you mean. " + example);
         }
         return start;
     }
@@ -345,8 +346,8 @@ public class Parser {
     private static void requireNoArgument(String argument, CommandType commandType) throws TedException {
         if (!argument.isEmpty()) {
             String keyword = commandType.getKeyword();
-            throw new TedException("\"" + keyword + "\" works on its own, so I'm not sure what to do with \""
-                    + argument + "\". Just type: " + keyword);
+            throw new TedException("\"" + keyword + "\" works on its own, so I don't know what to do with \""
+                    + argument + "\". Try: " + keyword);
         }
     }
 

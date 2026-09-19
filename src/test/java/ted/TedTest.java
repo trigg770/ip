@@ -37,7 +37,7 @@ public class TedTest {
     public void getResponse_leadingSpaces_commandRecognized(@TempDir Path tempDir) {
         // The GUI passes its text field on untrimmed, so Ted must cope with padding.
         Ted ted = new Ted(tempDir.resolve("ted.txt").toString());
-        assertTrue(ted.getResponse("   list").contains("You have no tasks yet."));
+        assertTrue(ted.getResponse("   list").contains("Your list is empty."));
     }
 
     /**
@@ -52,8 +52,8 @@ public class TedTest {
         Files.write(dataFile, List.of("not a task"));
 
         String greeting = new Ted(dataFile.toString()).getGreeting();
-        int welcomeIndex = greeting.indexOf("Hello! I'm Ted.");
-        int warningIndex = greeting.indexOf("Skipped 1 unreadable line");
+        int welcomeIndex = greeting.indexOf("I'm Ted");
+        int warningIndex = greeting.indexOf("so I skipped 1 line");
         assertTrue(welcomeIndex >= 0 && warningIndex > welcomeIndex);
     }
 
@@ -116,9 +116,9 @@ public class TedTest {
     public void getResponse_unknownCommand_explainedAndConversationContinues(@TempDir Path tempDir) {
         Ted ted = new Ted(tempDir.resolve("ted.txt").toString());
 
-        assertTrue(ted.getResponse("sing").contains("I don't recognize \"sing\""));
+        assertTrue(ted.getResponse("sing").contains("\"sing\"? Never heard of it."));
         assertFalse(ted.isExit());
-        assertTrue(ted.getResponse("todo read book").contains("Got it."));
+        assertTrue(ted.getResponse("todo read book").contains("I've added:"));
     }
 
     /**
@@ -131,7 +131,7 @@ public class TedTest {
     public void getResponse_deleteMissingTask_explainedAndConversationContinues(@TempDir Path tempDir) {
         Ted ted = new Ted(tempDir.resolve("ted.txt").toString());
 
-        assertTrue(ted.getResponse("delete 3").contains("Your list is empty, so there is no task 3 yet."));
+        assertTrue(ted.getResponse("delete 3").contains("Your list is empty, so there's no task 3."));
         assertFalse(ted.isExit());
     }
 
@@ -146,7 +146,7 @@ public class TedTest {
         ted.getResponse("list");
         assertFalse(ted.isExit());
 
-        assertEquals("Bye. Hope to see you again soon!", ted.getResponse("bye"));
+        assertEquals("Leaving already? Fine. I'll be here on the shelf. Bye!", ted.getResponse("bye"));
         assertTrue(ted.isExit());
     }
 
@@ -203,8 +203,8 @@ public class TedTest {
 
         String greeting = ted.getGreeting();
         assertTrue(greeting.contains("is a folder, not a file"));
-        assertTrue(greeting.contains("Starting with an empty list for now."));
-        assertTrue(ted.getResponse("list").contains("You have no tasks yet."));
+        assertTrue(greeting.contains("I'll start you on an empty list for now."));
+        assertTrue(ted.getResponse("list").contains("Your list is empty."));
     }
 
     /**
@@ -217,9 +217,9 @@ public class TedTest {
     public void run_typedLines_eachAnsweredUntilBye(@TempDir Path tempDir) {
         String output = runInTerminal(tempDir, "todo read book\n\nlist\nbye\nlist\n");
 
-        assertTrue(output.contains("Got it. I've added this task:"));
+        assertTrue(output.contains("I've added:"));
         assertTrue(output.contains("1.[T][ ] read book"));
-        assertTrue(output.contains("Bye. Hope to see you again soon!"));
+        assertTrue(output.contains("Leaving already?"));
         // The greeting, todo, list and bye each get one framed reply; the blank
         // line gets none, and the list after bye is never read.
         assertEquals(8, countDividers(output));
@@ -234,7 +234,7 @@ public class TedTest {
     @Test
     public void run_inputEndsWithoutBye_stillSaysGoodbye(@TempDir Path tempDir) {
         String output = runInTerminal(tempDir, "list\n");
-        assertTrue(output.contains("Bye. Hope to see you again soon!"));
+        assertTrue(output.contains("Leaving already?"));
     }
 
     /**

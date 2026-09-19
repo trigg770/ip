@@ -70,7 +70,7 @@ public class TagCommand extends Command {
         for (Tag tag : tags) {
             if (!task.hasTag(tag)) {
                 throw new TedException("Task " + (index + 1) + " doesn't have the tag " + tag
-                        + ", so nothing was changed.");
+                        + ", so I left its tags alone.");
             }
         }
     }

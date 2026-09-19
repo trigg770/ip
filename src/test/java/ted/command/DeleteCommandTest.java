@@ -37,7 +37,7 @@ public class DeleteCommandTest {
 
         String reply = ui.flush();
         assertTrue(reply.contains("[T][ ] borrow book"));
-        assertTrue(reply.contains("Now you have 1 task in the list."));
+        assertTrue(reply.contains("That's 1 task."));
         assertEquals("[T][ ] read book", storage.load().get(0).toString());
     }
 

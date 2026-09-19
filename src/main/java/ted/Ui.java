@@ -14,6 +14,11 @@ import ted.task.TaskList;
  * whole conversation can be moved to a window instead of a terminal, by
  * editing this class alone.
  * <p>
+ * Ted speaks as a cheeky teddy bear: he teases the user a little, but every
+ * reply still says plainly what happened, and every error says how to fix it.
+ * Error messages are written in the same voice by the code that detects the
+ * problem, since only that code knows what went wrong.
+ * <p>
  * Each {@code show} method adds to the reply being built rather than printing
  * it. {@link #flush()} hands the finished reply back, so the terminal can print
  * it while the GUI puts it in a dialog box.
@@ -22,12 +27,8 @@ public class Ui {
     /** Horizontal rule framing each of Ted's replies. */
     private static final String DIVIDER = "____________________________________________________________";
 
-    /** Ted's name in ASCII art, shown once at startup. */
-    private static final String BANNER = " _____ _____ ____  \n"
-            + "|_   _| ____|  _ \\ \n"
-            + "  | | |  _| | | | |\n"
-            + "  | | | |___| |_| |\n"
-            + "  |_| |_____|____/ \n";
+    /** Beyond this many tasks, Ted suggests finishing some before adding more. */
+    private static final int BUSY_TASK_COUNT = 10;
 
     /** Reads the user's commands from standard input, one line at a time. */
     private final Scanner scanner = new Scanner(System.in);
@@ -65,8 +66,8 @@ public class Ui {
      * @return the finished reply, without a trailing newline.
      */
     public String flush() {
-        // Only trailing space is removed: the banner's first line starts with
-        // a space that keeps the ASCII art lined up.
+        // Only trailing space is removed, so that a reply starting with an
+        // indented line keeps its indent.
         String finishedReply = reply.toString().stripTrailing();
         reply.setLength(0);
         return finishedReply;
@@ -87,13 +88,13 @@ public class Ui {
 
     /** Greets the user at startup. */
     public void showWelcome() {
-        show(BANNER + "Hello! I'm Ted.",
-                "What can I do for you?");
+        show("Oh good, you're here. I'm Ted: professional teddy bear, part-time life coach.",
+                "What do you need to get done today?");
     }
 
     /** Says goodbye just before Ted stops. */
     public void showGoodbye() {
-        show("Bye. Hope to see you again soon!");
+        show("Leaving already? Fine. I'll be here on the shelf. Bye!");
     }
 
     /**
@@ -111,7 +112,7 @@ public class Ui {
      * @param message explanation of what went wrong, phrased as Ted would say it.
      */
     public void showLoadingError(String message) {
-        show(message, "Starting with an empty list for now.");
+        show(message, "I'll start you on an empty list for now.");
     }
 
     /**
@@ -121,8 +122,8 @@ public class Ui {
      */
     public void showSkippedLines(int skippedLineCount) {
         String lineWord = skippedLineCount == 1 ? "line" : "lines";
-        show("Skipped " + skippedLineCount + " unreadable " + lineWord
-                + " in your save file.");
+        show("Some of your save file made no sense to me, so I skipped " + skippedLineCount + " "
+                + lineWord + ".");
     }
 
     /**
@@ -132,7 +133,7 @@ public class Ui {
      * @param backupFile where the copy was made.
      */
     public void showBackup(Path backupFile) {
-        show("I've kept a copy of the original file at " + backupFile + ".");
+        show("Don't worry, I kept a copy of the original file at " + backupFile + ".");
     }
 
     /**
@@ -142,7 +143,7 @@ public class Ui {
      * @param taskCount how many tasks are now stored.
      */
     public void showAdded(Task task, int taskCount) {
-        show("Got it. I've added this task:",
+        show("Look at you, being responsible. I've added:",
                 "  " + task);
         showTaskCount(taskCount);
     }
@@ -156,7 +157,7 @@ public class Ui {
      * @param taskCount how many tasks are left.
      */
     public void showRemoved(Task task, int taskCount) {
-        show("Noted. I've removed this task:",
+        show("Gone, just like that. I've removed:",
                 "  " + task);
         showTaskCount(taskCount);
     }
@@ -169,8 +170,8 @@ public class Ui {
      */
     public void showMarked(Task task, boolean isDone) {
         show(isDone
-                        ? "Nice! I've marked this task as done:"
-                        : "OK, I've marked this task as not done yet:",
+                        ? "You actually did it? I'm impressed. Marked as done:"
+                        : "Changed your mind? Marked as not done:",
                 "  " + task);
     }
 
@@ -181,7 +182,7 @@ public class Ui {
      * @param isAdding {@code true} if tags were attached, {@code false} if detached.
      */
     public void showTagged(Task task, boolean isAdding) {
-        show(isAdding ? "OK, I've tagged this task:" : "OK, I've untagged this task:",
+        show(isAdding ? "Fancy. I've tagged it:" : "Tag removed. Here it is now:",
                 "  " + task);
     }
 
@@ -191,7 +192,8 @@ public class Ui {
      * @param tasks the tasks to show.
      */
     public void showTasks(TaskList tasks) {
-        showNumbered(tasks, tasks, "Here are the tasks in your list:", "You have no tasks yet.");
+        showNumbered(tasks, tasks, "Here's everything you said you'd do:",
+                "Your list is empty. Either you're all done, or you haven't started yet.");
     }
 
     /**
@@ -203,8 +205,8 @@ public class Ui {
      * @param keyword what the user searched for, repeated back when nothing matched.
      */
     public void showMatchingTasks(TaskList tasks, TaskList matches, String keyword) {
-        showNumbered(tasks, matches, "Here are the matching tasks in your list:",
-                "No task matches \"" + keyword + "\".");
+        showNumbered(tasks, matches, "Here's what I found:",
+                "Nothing matches \"" + keyword + "\". I even checked under the sofa.");
     }
 
     /**
@@ -241,9 +243,21 @@ public class Ui {
         }
     }
 
-    /** Tells the user how many tasks are now stored. */
+    /**
+     * Tells the user how many tasks are now stored, with a remark that suits
+     * the size of the list.
+     *
+     * @param taskCount how many tasks are now stored.
+     */
     private void showTaskCount(int taskCount) {
-        String taskWord = taskCount == 1 ? "task" : "tasks";
-        show("Now you have " + taskCount + " " + taskWord + " in the list.");
+        if (taskCount == 0) {
+            show("Your list is empty now. Enjoy it while it lasts.");
+        } else if (taskCount == 1) {
+            show("That's 1 task. A small start, but a start.");
+        } else if (taskCount < BUSY_TASK_COUNT) {
+            show("That's " + taskCount + " tasks. Still manageable.");
+        } else {
+            show("That's " + taskCount + " tasks. Maybe finish a few before adding more?");
+        }
     }
 }

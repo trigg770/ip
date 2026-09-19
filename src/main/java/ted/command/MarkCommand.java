@@ -41,8 +41,10 @@ public class MarkCommand extends Command {
         if (task.isDone() == isDone) {
             // Confirming a change that did not happen would suggest the user
             // picked the task they meant, when they may have mixed up two numbers.
-            String status = isDone ? "done" : "not done";
-            throw new TedException("Task " + (index + 1) + " is already marked as " + status + ": " + task);
+            String explanation = isDone
+                    ? " is already done. Doing it twice won't earn you extra credit: "
+                    : " isn't done yet, so there's nothing to undo: ";
+            throw new TedException("Task " + (index + 1) + explanation + task);
         }
 
         if (isDone) {

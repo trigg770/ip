@@ -166,11 +166,15 @@ public class TaskList {
     private void requireValidIndex(int index) throws TedException {
         int taskNumber = index + 1;
         if (tasks.isEmpty()) {
-            throw new TedException("Your list is empty, so there is no task " + taskNumber + " yet.");
+            throw new TedException("Your list is empty, so there's no task " + taskNumber + ". "
+                    + "Add something first. Try: todo borrow book");
         }
         if (index < 0 || index >= tasks.size()) {
-            throw new TedException("You don't have a task numbered " + taskNumber + ". "
-                    + "Pick a number between 1 and " + tasks.size() + ".");
+            // "Pick a number from 1 to 1" would read oddly for a list of one.
+            String validNumbers = tasks.size() == 1
+                    ? "You only have 1 task, so the only number that works is 1."
+                    : "You have " + tasks.size() + ", so pick a number from 1 to " + tasks.size() + ".";
+            throw new TedException("There's no task " + taskNumber + ", buddy. " + validNumbers);
         }
     }
 }
