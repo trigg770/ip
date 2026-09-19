@@ -37,8 +37,8 @@ public class Main extends Application {
             Parent root = fxmlLoader.load();
             stage.setScene(new Scene(root));
             stage.setTitle("Ted");
-            // Shown in the title bar and task bar on Windows and Linux; macOS
-            // uses its own icon for Java apps in the Dock.
+            // Ted's picture sits beside the window title, and in the task bar
+            // on systems that have one, so the window is easy to pick out.
             stage.getIcons().add(new Image(Main.class.getResourceAsStream("/images/DaTed.png")));
             // The layout stretches to any size, but below these the window has
             // room for too little of the conversation to be useful.
