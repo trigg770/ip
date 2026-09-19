@@ -336,4 +336,20 @@ public class StorageTest {
         TedException e = assertThrows(TedException.class, () -> storage.save(new TaskList()));
         assertTrue(e.getMessage().contains("is a file, but I need a folder there"));
     }
+
+    /**
+     * Verifies that a line holding nothing but a separator is skipped like any
+     * other unreadable line, instead of stopping Ted from starting.
+     */
+    @Test
+    public void load_separatorOnlyLine_skipped(@TempDir Path tempDir) throws TedException, IOException {
+        Path dataFile = tempDir.resolve("ted.txt");
+        Files.writeString(dataFile, " | \nT | 0 | borrow book\n");
+
+        Storage storage = new Storage(dataFile.toString());
+        List<Task> loadedTasks = storage.load();
+
+        assertEquals(1, loadedTasks.size());
+        assertEquals(1, storage.getSkippedLineCount());
+    }
 }
