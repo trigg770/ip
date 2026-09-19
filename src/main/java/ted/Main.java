@@ -14,7 +14,9 @@ import javafx.stage.Stage;
  * <p>
  * Its only job is to load the window described in {@code MainWindow.fxml}, hand
  * the controller a {@link Ted} to talk to, and show the result. The window's
- * appearance lives in the FXML and its behavior in {@link MainWindow}.
+ * appearance lives in the FXML and its behavior in {@link MainWindow}. Adapted
+ * from the SE-EDU JavaFX tutorial
+ * (https://se-education.org/guides/tutorials/javaFx.html).
  */
 public class Main extends Application {
     /** The chatbot answering in this window. */

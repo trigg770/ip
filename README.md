@@ -24,3 +24,16 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
 1. To open Ted's window instead, run `src/main/java/ted/Launcher.java` the same way, or run `./gradlew run` from the project folder.
 
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.
+
+## Acknowledgements
+
+* Ted's window follows the [SE-EDU JavaFX tutorial](https://se-education.org/guides/tutorials/javaFx.html).
+  `Launcher`, `Main`, `MainWindow` and `DialogBox`, and their FXML files, are adapted from it.
+* Ted's picture is a teddy bear from [Openclipart](https://openclipart.org/image/400px/2694),
+  dedicated to the public domain under CC0.
+* AI tools were used by trigg770 as follows:
+  * [Claude Code](https://www.anthropic.com/claude-code) was used throughout the project to write and
+    refactor code, tests and documentation, to draft commit messages, and to review code. Commits it
+    helped write end with a `Co-Authored-By: Claude` line.
+  * [OpenAI Codex](https://openai.com/codex/) was used in Week 6 to review the code, and to add
+    Javadoc headers and fix naming and spelling to follow the coding standard.
