@@ -65,7 +65,9 @@ public class Ui {
      * @return the finished reply, without a trailing newline.
      */
     public String flush() {
-        String finishedReply = reply.toString().strip();
+        // Only trailing space is removed: the banner's first line starts with
+        // a space that keeps the ASCII art lined up.
+        String finishedReply = reply.toString().stripTrailing();
         reply.setLength(0);
         return finishedReply;
     }
